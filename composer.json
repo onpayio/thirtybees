@@ -1,0 +1,6 @@
+{
+    "require": {
+        "onpayio/php-sdk": "@dev",
+        "alcohol/iso4217": "^3.1"
+    }
+}
