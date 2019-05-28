@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2afc73c94ec974a59a545aaab97e12f4",
+    "content-hash": "5061e0dea36118c3229357afe7dc6a22",
     "packages": [
         {
             "name": "alcohol/iso4217",
-            "version": "3.1.2",
+            "version": "3.1.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/alcohol/iso4217.git",
-                "reference": "35ab569463169ce118983c293cdb7394ef31f873"
+                "reference": "f1432cfeb372238ab88ef1f6ffd56a8159677187"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/alcohol/iso4217/zipball/35ab569463169ce118983c293cdb7394ef31f873",
-                "reference": "35ab569463169ce118983c293cdb7394ef31f873",
+                "url": "https://api.github.com/repos/alcohol/iso4217/zipball/f1432cfeb372238ab88ef1f6ffd56a8159677187",
+                "reference": "f1432cfeb372238ab88ef1f6ffd56a8159677187",
                 "shasum": ""
             },
             "require": {
@@ -57,7 +57,7 @@
                 "iso",
                 "library"
             ],
-            "time": "2019-04-01T13:57:55+00:00"
+            "time": "2019-04-30T11:10:50+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",
@@ -311,16 +311,16 @@
         },
         {
             "name": "onpayio/php-sdk",
-            "version": "dev-master",
+            "version": "1.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/onpayio/php-sdk.git",
-                "reference": "ce6578ffacfafe839d1d582d25ae76a31fab4039"
+                "reference": "4f2fba7261debe244b14b47c4d4b365cacfec506"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/onpayio/php-sdk/zipball/ce6578ffacfafe839d1d582d25ae76a31fab4039",
-                "reference": "ce6578ffacfafe839d1d582d25ae76a31fab4039",
+                "url": "https://api.github.com/repos/onpayio/php-sdk/zipball/4f2fba7261debe244b14b47c4d4b365cacfec506",
+                "reference": "4f2fba7261debe244b14b47c4d4b365cacfec506",
                 "shasum": ""
             },
             "require": {
@@ -339,7 +339,7 @@
             ],
             "description": "PHP SDK for OnPay.io API",
             "homepage": "https://github.com/onpayio/php-sdk",
-            "time": "2019-05-06T07:21:29+00:00"
+            "time": "2019-05-28T11:40:07+00:00"
         },
         {
             "name": "paragonie/random_compat",
@@ -484,9 +484,7 @@
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "onpayio/php-sdk": 20
-    },
+    "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],
