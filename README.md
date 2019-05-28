@@ -1,14 +1,14 @@
-# OnPay - Prestashop module
+# OnPay - ThirtyBees module
 
-Module for Prestashop webshop platform, based on the official OnPay PHP SDK.
+Module for ThirtyBees webshop platform, based on the official OnPay PHP SDK.
 The module adds the following functionality to Prestashop:
-- Usage of OnPay as a payment method in Prestashop, with credit cards, MobilePay and Viabill.
+- Usage of OnPay as a payment method in ThirtyBees, with credit cards, MobilePay and Viabill.
 - Validation of orders with callbacks directly from OnPay, outside the context of the cardholders browser.
 - Management of transaction on order pages in backoffice.
 
-The module is tested and confirmed working on 
-- Prestashop v. 1.6.1.23 
+The module is tested and confirmed working on
 - ThirtyBees v. 1.0.8
+- Prestashop v. 1.6.1.23 
 
 ## Usage
 1. Install module as any other Prestashop module.
