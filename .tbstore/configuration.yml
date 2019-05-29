@@ -11,6 +11,7 @@ tags:
   - payment module
 description_short: Payment module that allows your shop to accept payments through OnPay
 description: description.md
+gdpr_compliant: true
 images:
   - image-1.png
   - image-2.png
