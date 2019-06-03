@@ -239,7 +239,7 @@ class Onpay extends PaymentModule
             }
 
             if(Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_MOBILEPAY)) {
-                $mobilePayWindowFields = $this->generatePaymentWindow($order, \OnPay\API\PaymentWindow::METHOD_VIABILL, $currency)->getFormFields();
+                $mobilePayWindowFields = $this->generatePaymentWindow($order, \OnPay\API\PaymentWindow::METHOD_MOBILEPAY, $currency)->getFormFields();
             } else {
                 $mobilePayWindowFields = [];
             }
