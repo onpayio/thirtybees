@@ -702,7 +702,13 @@ class Onpay extends PaymentModule
      */
     private function generateUrl($params)
     {
-        $currentPage = Configuration::get('PS_SSL_ENABLED') ? 'https://' : 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+        if (Configuration::get('PS_SSL_ENABLED')) {
+            $currentPage = 'https://';
+        } else {
+            $currentPage = 'http://';
+        }
+        $currentPage .= $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+
         $baseUrl = explode('?', $currentPage, 2);
         $baseUrl = array_shift($baseUrl);
         $fullUrl = $baseUrl . '?' . http_build_query($params);
