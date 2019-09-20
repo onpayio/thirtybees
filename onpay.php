@@ -180,11 +180,10 @@ class Onpay extends PaymentModule
         $paymentWindow->setAmount($orderTotal);
         // Reference must be unique (eg. invoice number)
         $paymentWindow->setReference($order->id);
-        $paymentPage = Configuration::get('PS_SSL_ENABLED') ? 'https://' : 'http://' . $_SERVER['HTTP_HOST'] . '/module/onpay/payment';
-        $paymentWindow->setAcceptUrl($paymentPage . '?accept');
-        $paymentWindow->setDeclineUrl($paymentPage);
+        $paymentWindow->setAcceptUrl($this->context->link->getModuleLink('onpay', 'payment', ['accept' => 1], Configuration::get('PS_SSL_ENABLED')));
+        $paymentWindow->setDeclineUrl($this->context->link->getModuleLink('onpay', 'payment', [], Configuration::get('PS_SSL_ENABLED')));
         $paymentWindow->setType("payment");
-        $paymentWindow->setCallbackUrl(Configuration::get('PS_SSL_ENABLED') ? 'https://' : 'http://' . $_SERVER['HTTP_HOST'] . '/module/onpay/callback');
+        $paymentWindow->setCallbackUrl($this->context->link->getModuleLink('onpay', 'callback', [], Configuration::get('PS_SSL_ENABLED'), null));
 
         if(Configuration::get(self::SETTING_ONPAY_PAYMENTWINDOW_DESIGN)) {
             $paymentWindow->setDesign(Configuration::get(self::SETTING_ONPAY_PAYMENTWINDOW_DESIGN));
