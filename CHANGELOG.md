@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 - Fixed generating URLs for https sites
+- Updated version of PHP SDK
+- Fixed URLs generated for paymentWindow not working with friendly URLs disabled
+- Fix build script checking for outdated version of composer only
 
 ## [1.0.1] - 2019-06-03
 - Fixed usage of wrong constant used for MobilePay (#2)
