@@ -394,31 +394,33 @@ class Onpay extends PaymentModule
         $details = [];
 
         try {
-
             if($this->getOnpayClient()->isAuthorized()) {
                 foreach ($payments as $payment) {
-                    $onpayInfo = $onPayAPI->transaction()->getTransaction($payment->transaction_id);
-                    $amount  = $this->currencyHelper->minorToMajor($onpayInfo->amount, $onpayInfo->currencyCode, ',');
-                    $chargable = $onpayInfo->amount - $onpayInfo->charged;
-                    $chargable = $this->currencyHelper->minorToMajor($chargable, $onpayInfo->currencyCode, ',');
-                    $refunded = $this->currencyHelper->minorToMajor($onpayInfo->refunded, $onpayInfo->currencyCode, ',');
-                    $charged = $this->currencyHelper->minorToMajor($onpayInfo->charged, $onpayInfo->currencyCode, ',');
+                    if ($payment->payment_method === 'OnPay' && null !== $payment->transaction_id && '' !== $payment->transaction_id) {
+                        $onpayInfo = $onPayAPI->transaction()->getTransaction($payment->transaction_id);
+                        $amount  = $this->currencyHelper->minorToMajor($onpayInfo->amount, $onpayInfo->currencyCode, ',');
+                        $chargable = $onpayInfo->amount - $onpayInfo->charged;
+                        $chargable = $this->currencyHelper->minorToMajor($chargable, $onpayInfo->currencyCode, ',');
+                        $refunded = $this->currencyHelper->minorToMajor($onpayInfo->refunded, $onpayInfo->currencyCode, ',');
+                        $charged = $this->currencyHelper->minorToMajor($onpayInfo->charged, $onpayInfo->currencyCode, ',');
+                        $currency = $this->currencyHelper->fromNumeric($onpayInfo->currencyCode);
 
-                    $currencyCode = $onpayInfo->currencyCode;
+                        $currencyCode = $onpayInfo->currencyCode;
 
-                    array_walk($onpayInfo->history, function(\OnPay\API\Transaction\TransactionHistory $history) use($currencyCode) {
-                        $amount = $history->amount;
-                        $amount = $this->currencyHelper->minorToMajor($amount, $currencyCode, ',');
-                        $history->amount = $amount;
-                    });
+                        array_walk($onpayInfo->history, function(\OnPay\API\Transaction\TransactionHistory $history) use($currencyCode) {
+                            $amount = $history->amount;
+                            $amount = $this->currencyHelper->minorToMajor($amount, $currencyCode, ',');
+                            $history->amount = $amount;
+                        });
 
-                    $refundable = $onpayInfo->charged - $onpayInfo->refunded;
-                    $refundable = $this->currencyHelper->minorToMajor($refundable, $onpayInfo->currencyCode,',');
-                    $details[] = [
-                        'details' => ['amount' => $amount, 'chargeable' => $chargable, 'refunded' => $refunded, 'charged' => $charged, 'refundable' => $refundable],
-                        'payment' => $payment,
-                        'onpay' => $onpayInfo,
-                    ];
+                        $refundable = $onpayInfo->charged - $onpayInfo->refunded;
+                        $refundable = $this->currencyHelper->minorToMajor($refundable, $onpayInfo->currencyCode,',');
+                        $details[] = [
+                            'details' => ['amount' => $amount, 'chargeable' => $chargable, 'refunded' => $refunded, 'charged' => $charged, 'refundable' => $refundable, 'currency' => $currency],
+                            'payment' => $payment,
+                            'onpay' => $onpayInfo,
+                        ];
+                    }
                 }
             }
         } catch (\OnPay\API\Exception\ApiException $exception) {
@@ -427,7 +429,6 @@ class Onpay extends PaymentModule
                 'paymentdetails' => $details,
                 'url' => '',
                 'isAuthorized' => false,
-                'currencyDetails' => '',
             ));
             return $this->display(__FILE__, 'views/admin/order_details.tpl');
         }
@@ -437,7 +438,6 @@ class Onpay extends PaymentModule
             'paymentdetails' => $details,
             'url' => $url,
             'isAuthorized' => $this->getOnpayClient()->isAuthorized(),
-            'currencyDetails' => new Currency($payments[0]->id_currency),
         ));
         return $this->display(__FILE__, 'views/admin/order_details.tpl');
     }
