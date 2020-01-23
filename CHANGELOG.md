@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [1.0.2] - 2020-01-23
+- Fixed empty transaction_id value on payments resulting in errors, when trying to get transaction data from API. (PR #5)
+- Fixed API calls made regardless of payment method used for order. (PR #5)
+- Fixed multiple payments through OnPay on a single order not being properly supported. (PR #5)
 - Fixed generating URLs for https sites
 - Updated version of PHP SDK
 - Fixed URLs generated for paymentWindow not working with friendly URLs disabled
