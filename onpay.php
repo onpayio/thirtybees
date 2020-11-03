@@ -33,13 +33,14 @@ require_once __DIR__ . '/classes/TokenStorage.php';
  */
 class Onpay extends PaymentModule
 {
-
     const SETTING_ONPAY_GATEWAY_ID = 'ONPAY_GATEWAY_ID';
     const SETTING_ONPAY_SECRET = 'ONPAY_SECRET';
     const SETTING_ONPAY_EXTRA_PAYMENTS_MOBILEPAY = 'ONPAY_EXTRA_PAYMENTS_MOBILEPAY';
     const SETTING_ONPAY_EXTRA_PAYMENTS_VIABILL = 'ONPAY_EXTRA_PAYMENTS_VIABILL';
     const SETTING_ONPAY_EXTRA_PAYMENTS_CARD = 'ONPAY_EXTRA_PAYMENTS_CARD';
     const SETTING_ONPAY_PAYMENTWINDOW_DESIGN = 'ONPAY_PAYMENTWINDOW_DESIGN';
+    const SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE = 'ONPAY_PAYMENTWINDOW_LANGUAGE';
+    const SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE_AUTO = 'ONPAY_PAYMENTWINDOW_LANGUAGE_AUTO';
     const SETTING_ONPAY_TOKEN = 'ONPAY_TOKEN';
     const SETTING_ONPAY_TESTMODE = 'ONPAY_TESTMODE_ENABLED';
     const SETTING_ONPAY_3D_SECURE_ENABLED = 'ONPAY_3D_SECURE_ENABLED';
@@ -124,6 +125,8 @@ class Onpay extends PaymentModule
             self::SETTING_ONPAY_EXTRA_PAYMENTS_VIABILL,
             self::SETTING_ONPAY_EXTRA_PAYMENTS_CARD,
             self::SETTING_ONPAY_PAYMENTWINDOW_DESIGN,
+            self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE,
+            self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE_AUTO,
             self::SETTING_ONPAY_TOKEN,
             self::SETTING_ONPAY_TESTMODE,
             self::SETTING_ONPAY_3D_SECURE_ENABLED
@@ -189,6 +192,13 @@ class Onpay extends PaymentModule
             $paymentWindow->setDesign(Configuration::get(self::SETTING_ONPAY_PAYMENTWINDOW_DESIGN));
         }
 
+        if (Configuration::get(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE_AUTO)) {
+            $paymentWindow->setLanguage($this->getPaymentWindowLanguageByPSLanguage($this->context->language->iso_code));
+        } else if (Configuration::get(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE)) {
+
+            $paymentWindow->setLanguage(Configuration::get(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE));
+        }
+
         if(Configuration::get(self::SETTING_ONPAY_3D_SECURE_ENABLED)) {
             $paymentWindow->setSecureEnabled(true);
         } else {
@@ -197,8 +207,54 @@ class Onpay extends PaymentModule
 
         // Set payment method
         $paymentWindow->setMethod($payment);
-        // Enable testmode
 
+        // Add additional info
+        $customer = new Customer($order->id_customer);
+
+        $invoice_address = new Address($order->id_address_invoice);
+        $invoice_country = new Country($invoice_address->id_country);
+        $invoice_state = new State($invoice_address->id_state);
+
+        $delivery_address = new Address($order->id_address_invoice);
+        $delivery_country = new Country($delivery_address->id_country);
+        $delivery_state = new State($delivery_address->id_state);
+
+        $paymentInfo = new \OnPay\API\PaymentWindow\PaymentInfo();
+
+        $this->setPaymentInfoParameter($paymentInfo, 'AccountId', $customer->id);
+        $this->setPaymentInfoParameter($paymentInfo, 'AccountDateCreated', date('Y-m-d', strtotime($customer->date_add)));
+        $this->setPaymentInfoParameter($paymentInfo, 'AccountDateChange', date('Y-m-d', strtotime($customer->date_upd)));
+        $this->setPaymentInfoParameter($paymentInfo, 'AccountDatePasswordChange', date('Y-m-d', strtotime($customer->last_passwd_gen)));
+        $this->setPaymentInfoParameter($paymentInfo, 'AccountShippingFirstUseDate', date('Y-m-d', strtotime($delivery_address->date_add)));
+
+        if ($invoice_address->id === $delivery_address->id) {
+            $this->setPaymentInfoParameter($paymentInfo, 'AccountShippingIdenticalName', 'Y');
+            $this->setPaymentInfoParameter($paymentInfo, 'AddressIdenticalShipping', 'Y');
+        }
+
+        $this->setPaymentInfoParameter($paymentInfo, 'BillingAddressCity', $invoice_address->city);
+        $this->setPaymentInfoParameter($paymentInfo, 'BillingAddressCountry', $invoice_country->iso_code);
+        $this->setPaymentInfoParameter($paymentInfo, 'BillingAddressLine1', $invoice_address->address1);
+        $this->setPaymentInfoParameter($paymentInfo, 'BillingAddressLine2', $invoice_address->address2);
+        $this->setPaymentInfoParameter($paymentInfo, 'BillingAddressPostalCode', $invoice_address->postcode);
+        $this->setPaymentInfoParameter($paymentInfo, 'BillingAddressState', $invoice_state->iso_code);
+
+        $this->setPaymentInfoParameter($paymentInfo, 'ShippingAddressCity', $delivery_address->city);
+        $this->setPaymentInfoParameter($paymentInfo, 'ShippingAddressCountry', $delivery_country->iso_code);
+        $this->setPaymentInfoParameter($paymentInfo, 'ShippingAddressLine1', $delivery_address->address1);
+        $this->setPaymentInfoParameter($paymentInfo, 'ShippingAddressLine2', $delivery_address->address2);
+        $this->setPaymentInfoParameter($paymentInfo, 'ShippingAddressPostalCode', $delivery_address->postcode);
+        $this->setPaymentInfoParameter($paymentInfo, 'ShippingAddressState', $delivery_state->iso_code);
+
+        $this->setPaymentInfoParameter($paymentInfo, 'Name', $customer->firstname . ' ' . $customer->lastname);
+        $this->setPaymentInfoParameter($paymentInfo, 'Email', $customer->email);
+        $this->setPaymentInfoParameter($paymentInfo, 'PhoneHome',  [null, $invoice_address->phone]);
+        $this->setPaymentInfoParameter($paymentInfo, 'PhoneMobile', [null, $invoice_address->phone_mobile]);
+        $this->setPaymentInfoParameter($paymentInfo, 'DeliveryEmail', $customer->email);
+
+        $paymentWindow->setInfo($paymentInfo);
+
+        // Enable testmode
         if(Configuration::get(self::SETTING_ONPAY_TESTMODE)) {
             $paymentWindow->setTestMode(1);
         } else {
@@ -206,6 +262,32 @@ class Onpay extends PaymentModule
         }
 
         return $paymentWindow;
+    }
+
+    /**
+     * Method used for setting a payment info parameter. The value is attempted set, if this fails we'll ignore the value and do nothing.
+     * $value can be a single value or an array of values passed on as arguments.
+     * Validation of value happens directly in the SDK.
+     *
+     * @param $paymentInfo
+     * @param $parameter
+     * @param $value
+     */
+    private function setPaymentInfoParameter($paymentInfo, $parameter, $value) {
+        if ($paymentInfo instanceof \OnPay\API\PaymentWindow\PaymentInfo) {
+            $method = 'set'.$parameter;
+            if (method_exists($paymentInfo, $method)) {
+                try {
+                    if (is_array($value)) {
+                        call_user_func_array([$paymentInfo, $method], $value);
+                    } else {
+                        call_user_func([$paymentInfo, $method], $value);
+                    }
+                } catch (\OnPay\API\Exception\InvalidFormatException $e) {
+                    // No need to do anything. If the value fails, we'll simply ignore the value.
+                }
+            }
+        }
     }
 
     /**
@@ -479,6 +561,18 @@ class Onpay extends PaymentModule
                 Configuration::updateValue(self::SETTING_ONPAY_PAYMENTWINDOW_DESIGN, Tools::getValue(self::SETTING_ONPAY_PAYMENTWINDOW_DESIGN));
             }
 
+            if(Tools::getValue(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE) === 'ONPAY_PAYMENTWINDOW_LANGUAGE') {
+                Configuration::updateValue(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE, false);
+            } else {
+                Configuration::updateValue(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE, Tools::getValue(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE));
+            }
+
+            if(Tools::getValue(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE_AUTO) === 'ONPAY_PAYMENTWINDOW_LANGUAGE_AUTO') {
+                Configuration::updateValue(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE_AUTO, false);
+            } else {
+                Configuration::updateValue(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE_AUTO, Tools::getValue(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE_AUTO));
+            }
+
             Configuration::updateValue(self::SETTING_ONPAY_3D_SECURE_ENABLED, Tools::getValue(self::SETTING_ONPAY_3D_SECURE_ENABLED));
         }
         $this->htmlContent .= $this->displayConfirmation($this->l('Settings updated'));
@@ -574,6 +668,34 @@ class Onpay extends PaymentModule
                         )
                     ),
                     array(
+                        'type' => 'select',
+                        'lang' => true,
+                        'label' => $this->l('Payment window language'),
+                        'name' => self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE,
+                        'options' => [
+                            'query'=> $this->getPaymentWindowLanguageOptions(),
+                            'id' => 'id_option',
+                            'name' => 'name',
+                        ]
+                    ),
+                    array(
+                        'type' => 'switch',
+                        'label' => $this->l('Automatic payment window language'),
+                        'desc' => $this->l('Overrides language chosen above, and instead determines payment window language based on frontoffice language'),
+                        'name' => self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE_AUTO,
+                        'required' => false,
+                        'values'=>[
+                            array(
+                                'id' => 'ENABLED',
+                                'value' => '1',
+                            ),
+                            array(
+                                'id' => 'DISABLED',
+                                'value' => false
+                            )
+                        ]
+                    ),
+                    array(
                         'type' => 'text',
                         'disabled' => true,
                         'class' => 'fixed-width-xl',
@@ -628,6 +750,8 @@ class Onpay extends PaymentModule
             self::SETTING_ONPAY_EXTRA_PAYMENTS_VIABILL => Tools::getValue(self::SETTING_ONPAY_EXTRA_PAYMENTS_VIABILL, Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_VIABILL)),
             self::SETTING_ONPAY_EXTRA_PAYMENTS_CARD => Tools::getValue(self::SETTING_ONPAY_EXTRA_PAYMENTS_CARD, Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_CARD)),
             self::SETTING_ONPAY_PAYMENTWINDOW_DESIGN => Tools::getValue(self::SETTING_ONPAY_PAYMENTWINDOW_DESIGN, Configuration::get(self::SETTING_ONPAY_PAYMENTWINDOW_DESIGN)),
+            self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE => Tools::getValue(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE, Configuration::get(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE)),
+            self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE_AUTO => Tools::getValue(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE_AUTO, Configuration::get(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE_AUTO)),
             self::SETTING_ONPAY_3D_SECURE_ENABLED => Tools::getValue(self::SETTING_ONPAY_3D_SECURE_ENABLED, Configuration::get(self::SETTING_ONPAY_3D_SECURE_ENABLED)),
             self::SETTING_ONPAY_TESTMODE => Tools::getValue(self::SETTING_ONPAY_TESTMODE, Configuration::get(self::SETTING_ONPAY_TESTMODE)),
         );
@@ -692,6 +816,87 @@ class Onpay extends PaymentModule
         }
 
         return $selectOptions;
+    }
+
+     /**
+     * Returns a prepared list of available payment window languages
+     *
+     * @return array
+     */
+    private function getPaymentWindowLanguageOptions() {
+        return [
+            [
+                'name' => $this->l('English'),
+                'id_option' => 'en',
+            ],
+            [
+                'name' => $this->l('Danish'),
+                'id_option' => 'da',
+            ],
+            [
+                'name' => $this->l('Dutch'),
+                'id_option' => 'nl',
+            ],
+            [
+                'name' => $this->l('Faroese'),
+                'id_option' => 'fo',
+            ],
+            [
+                'name' => $this->l('French'),
+                'id_option' => 'fr',
+            ],
+            [
+                'name' => $this->l('German'),
+                'id_option' => 'de',
+            ],
+            [
+                'name' => $this->l('Italian'),
+                'id_option' => 'it',
+            ],
+            [
+                'name' => $this->l('Norwegian'),
+                'id_option' => 'no',
+            ],
+            [
+                'name' => $this->l('Polish'),
+                'id_option' => 'pl',
+            ],
+            [
+                'name' => $this->l('Spanish'),
+                'id_option' => 'es',
+            ],
+            [
+                'name' => $this->l('Swedish'),
+                'id_option' => 'sv',
+            ],
+        ];
+    }
+
+    // Returns valid OnPay payment window language by Prestashop language iso
+    private function getPaymentWindowLanguageByPSLanguage($languageIso) {
+        $languageRelations = [
+            'en' => 'en',
+            'es' => 'es',
+            'da' => 'da',
+            'de' => 'de',
+            'fo' => 'fo',
+            'fr' => 'fr',
+            'it' => 'it',
+            'nl' => 'nl',
+            'no' => 'no',
+            'pl' => 'pl',
+            'sv' => 'sv',
+
+            'us' => 'en', // Incase of mixup
+            'nb' => 'no', // Incase use of archaic language definition
+            'nn' => 'no', // Incase use of archaic language definition
+            'dk' => 'da', // Incase of mixup
+            'kl' => 'da', // Incase of Kalaallisut/Greenlandic
+        ];
+        if (array_key_exists($languageIso, $languageRelations)) {
+            return $languageRelations[$languageIso];
+        }
+        return 'en';
     }
 
     /**
