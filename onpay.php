@@ -33,13 +33,14 @@ require_once __DIR__ . '/classes/TokenStorage.php';
  */
 class Onpay extends PaymentModule
 {
-
     const SETTING_ONPAY_GATEWAY_ID = 'ONPAY_GATEWAY_ID';
     const SETTING_ONPAY_SECRET = 'ONPAY_SECRET';
     const SETTING_ONPAY_EXTRA_PAYMENTS_MOBILEPAY = 'ONPAY_EXTRA_PAYMENTS_MOBILEPAY';
     const SETTING_ONPAY_EXTRA_PAYMENTS_VIABILL = 'ONPAY_EXTRA_PAYMENTS_VIABILL';
     const SETTING_ONPAY_EXTRA_PAYMENTS_CARD = 'ONPAY_EXTRA_PAYMENTS_CARD';
     const SETTING_ONPAY_PAYMENTWINDOW_DESIGN = 'ONPAY_PAYMENTWINDOW_DESIGN';
+    const SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE = 'ONPAY_PAYMENTWINDOW_LANGUAGE';
+    const SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE_AUTO = 'ONPAY_PAYMENTWINDOW_LANGUAGE_AUTO';
     const SETTING_ONPAY_TOKEN = 'ONPAY_TOKEN';
     const SETTING_ONPAY_TESTMODE = 'ONPAY_TESTMODE_ENABLED';
     const SETTING_ONPAY_3D_SECURE_ENABLED = 'ONPAY_3D_SECURE_ENABLED';
@@ -124,6 +125,8 @@ class Onpay extends PaymentModule
             self::SETTING_ONPAY_EXTRA_PAYMENTS_VIABILL,
             self::SETTING_ONPAY_EXTRA_PAYMENTS_CARD,
             self::SETTING_ONPAY_PAYMENTWINDOW_DESIGN,
+            self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE,
+            self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE_AUTO,
             self::SETTING_ONPAY_TOKEN,
             self::SETTING_ONPAY_TESTMODE,
             self::SETTING_ONPAY_3D_SECURE_ENABLED
@@ -187,6 +190,13 @@ class Onpay extends PaymentModule
 
         if(Configuration::get(self::SETTING_ONPAY_PAYMENTWINDOW_DESIGN)) {
             $paymentWindow->setDesign(Configuration::get(self::SETTING_ONPAY_PAYMENTWINDOW_DESIGN));
+        }
+
+        if (Configuration::get(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE_AUTO)) {
+            $paymentWindow->setLanguage($this->getPaymentWindowLanguageByPSLanguage($this->context->language->iso_code));
+        } else if (Configuration::get(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE)) {
+
+            $paymentWindow->setLanguage(Configuration::get(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE));
         }
 
         if(Configuration::get(self::SETTING_ONPAY_3D_SECURE_ENABLED)) {
@@ -479,6 +489,18 @@ class Onpay extends PaymentModule
                 Configuration::updateValue(self::SETTING_ONPAY_PAYMENTWINDOW_DESIGN, Tools::getValue(self::SETTING_ONPAY_PAYMENTWINDOW_DESIGN));
             }
 
+            if(Tools::getValue(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE) === 'ONPAY_PAYMENTWINDOW_LANGUAGE') {
+                Configuration::updateValue(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE, false);
+            } else {
+                Configuration::updateValue(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE, Tools::getValue(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE));
+            }
+
+            if(Tools::getValue(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE_AUTO) === 'ONPAY_PAYMENTWINDOW_LANGUAGE_AUTO') {
+                Configuration::updateValue(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE_AUTO, false);
+            } else {
+                Configuration::updateValue(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE_AUTO, Tools::getValue(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE_AUTO));
+            }
+
             Configuration::updateValue(self::SETTING_ONPAY_3D_SECURE_ENABLED, Tools::getValue(self::SETTING_ONPAY_3D_SECURE_ENABLED));
         }
         $this->htmlContent .= $this->displayConfirmation($this->l('Settings updated'));
@@ -574,6 +596,34 @@ class Onpay extends PaymentModule
                         )
                     ),
                     array(
+                        'type' => 'select',
+                        'lang' => true,
+                        'label' => $this->l('Payment window language'),
+                        'name' => self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE,
+                        'options' => [
+                            'query'=> $this->getPaymentWindowLanguageOptions(),
+                            'id' => 'id_option',
+                            'name' => 'name',
+                        ]
+                    ),
+                    array(
+                        'type' => 'switch',
+                        'label' => $this->l('Automatic payment window language'),
+                        'desc' => $this->l('Overrides language chosen above, and instead determines payment window language based on frontoffice language'),
+                        'name' => self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE_AUTO,
+                        'required' => false,
+                        'values'=>[
+                            array(
+                                'id' => 'ENABLED',
+                                'value' => '1',
+                            ),
+                            array(
+                                'id' => 'DISABLED',
+                                'value' => false
+                            )
+                        ]
+                    ),
+                    array(
                         'type' => 'text',
                         'disabled' => true,
                         'class' => 'fixed-width-xl',
@@ -628,6 +678,8 @@ class Onpay extends PaymentModule
             self::SETTING_ONPAY_EXTRA_PAYMENTS_VIABILL => Tools::getValue(self::SETTING_ONPAY_EXTRA_PAYMENTS_VIABILL, Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_VIABILL)),
             self::SETTING_ONPAY_EXTRA_PAYMENTS_CARD => Tools::getValue(self::SETTING_ONPAY_EXTRA_PAYMENTS_CARD, Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_CARD)),
             self::SETTING_ONPAY_PAYMENTWINDOW_DESIGN => Tools::getValue(self::SETTING_ONPAY_PAYMENTWINDOW_DESIGN, Configuration::get(self::SETTING_ONPAY_PAYMENTWINDOW_DESIGN)),
+            self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE => Tools::getValue(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE, Configuration::get(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE)),
+            self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE_AUTO => Tools::getValue(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE_AUTO, Configuration::get(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE_AUTO)),
             self::SETTING_ONPAY_3D_SECURE_ENABLED => Tools::getValue(self::SETTING_ONPAY_3D_SECURE_ENABLED, Configuration::get(self::SETTING_ONPAY_3D_SECURE_ENABLED)),
             self::SETTING_ONPAY_TESTMODE => Tools::getValue(self::SETTING_ONPAY_TESTMODE, Configuration::get(self::SETTING_ONPAY_TESTMODE)),
         );
@@ -692,6 +744,87 @@ class Onpay extends PaymentModule
         }
 
         return $selectOptions;
+    }
+
+     /**
+     * Returns a prepared list of available payment window languages
+     *
+     * @return array
+     */
+    private function getPaymentWindowLanguageOptions() {
+        return [
+            [
+                'name' => $this->l('English'),
+                'id_option' => 'en',
+            ],
+            [
+                'name' => $this->l('Danish'),
+                'id_option' => 'da',
+            ],
+            [
+                'name' => $this->l('Dutch'),
+                'id_option' => 'nl',
+            ],
+            [
+                'name' => $this->l('Faroese'),
+                'id_option' => 'fo',
+            ],
+            [
+                'name' => $this->l('French'),
+                'id_option' => 'fr',
+            ],
+            [
+                'name' => $this->l('German'),
+                'id_option' => 'de',
+            ],
+            [
+                'name' => $this->l('Italian'),
+                'id_option' => 'it',
+            ],
+            [
+                'name' => $this->l('Norwegian'),
+                'id_option' => 'no',
+            ],
+            [
+                'name' => $this->l('Polish'),
+                'id_option' => 'pl',
+            ],
+            [
+                'name' => $this->l('Spanish'),
+                'id_option' => 'es',
+            ],
+            [
+                'name' => $this->l('Swedish'),
+                'id_option' => 'sv',
+            ],
+        ];
+    }
+
+    // Returns valid OnPay payment window language by Prestashop language iso
+    private function getPaymentWindowLanguageByPSLanguage($languageIso) {
+        $languageRelations = [
+            'en' => 'en',
+            'es' => 'es',
+            'da' => 'da',
+            'de' => 'de',
+            'fo' => 'fo',
+            'fr' => 'fr',
+            'it' => 'it',
+            'nl' => 'nl',
+            'no' => 'no',
+            'pl' => 'pl',
+            'sv' => 'sv',
+
+            'us' => 'en', // Incase of mixup
+            'nb' => 'no', // Incase use of archaic language definition
+            'nn' => 'no', // Incase use of archaic language definition
+            'dk' => 'da', // Incase of mixup
+            'kl' => 'da', // Incase of Kalaallisut/Greenlandic
+        ];
+        if (array_key_exists($languageIso, $languageRelations)) {
+            return $languageRelations[$languageIso];
+        }
+        return 'en';
     }
 
     /**
