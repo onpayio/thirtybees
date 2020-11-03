@@ -60,12 +60,18 @@
             "time": "2019-10-30T10:03:42+00:00"
         },
         {
-            "name": "fkooman/oauth2-client",
-            "version": "7.1.3",
+            "name": "onpayio/oauth2-client",
+            "version": "7.2.0",
             "source": {
                 "type": "git",
-                "url": "https://git.tuxed.net/fkooman/php-oauth2-client",
-                "reference": "3d96587ed78b1ecd72085847cae779b6edeb4526"
+                "url": "https://github.com/onpayio/php-oauth2-client.git",
+                "reference": "e97fd6d5868a1ca9af715ae83d1991b4f880745f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/onpayio/php-oauth2-client/zipball/e97fd6d5868a1ca9af715ae83d1991b4f880745f",
+                "reference": "e97fd6d5868a1ca9af715ae83d1991b4f880745f",
+                "shasum": ""
             },
             "require": {
                 "ext-curl": "*",
@@ -77,13 +83,13 @@
                 "ext-session": "*",
                 "ext-spl": "*",
                 "paragonie/constant_time_encoding": "^1|^2",
-                "paragonie/random_compat": "^1|^2",
+                "paragonie/random_compat": ">=1",
                 "php": ">=5.4",
                 "psr/log": "^1.0",
                 "symfony/polyfill-php56": "^1"
             },
             "require-dev": {
-                "phpunit/phpunit": "^4.8.35|^5|^6"
+                "phpunit/phpunit": "^4.8.35|^5|^6|^7"
             },
             "type": "library",
             "autoload": {
@@ -102,26 +108,25 @@
                 }
             ],
             "description": "Very simple OAuth 2.0 client",
-            "abandoned": true,
-            "time": "2018-06-02T00:36:19+00:00"
+            "time": "2020-04-25T09:56:27+00:00"
         },
         {
             "name": "onpayio/php-sdk",
-            "version": "1.0.7",
+            "version": "1.0.10",
             "source": {
                 "type": "git",
                 "url": "https://github.com/onpayio/php-sdk.git",
-                "reference": "dcdb5cd8da61adf71a5c5da9f13f3539e470391b"
+                "reference": "9dfacc9debbc376d6b08d76c0ad4ceb05c966e73"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/onpayio/php-sdk/zipball/dcdb5cd8da61adf71a5c5da9f13f3539e470391b",
-                "reference": "dcdb5cd8da61adf71a5c5da9f13f3539e470391b",
+                "url": "https://api.github.com/repos/onpayio/php-sdk/zipball/9dfacc9debbc376d6b08d76c0ad4ceb05c966e73",
+                "reference": "9dfacc9debbc376d6b08d76c0ad4ceb05c966e73",
                 "shasum": ""
             },
             "require": {
                 "ext-json": "*",
-                "fkooman/oauth2-client": "^7.1",
+                "onpayio/oauth2-client": "^7.1",
                 "php": ">=5.6"
             },
             "type": "library",
@@ -136,7 +141,7 @@
             ],
             "description": "PHP SDK for OnPay.io API",
             "homepage": "https://github.com/onpayio/php-sdk",
-            "time": "2020-04-28T07:48:55+00:00"
+            "time": "2020-10-21T11:07:30+00:00"
         },
         {
             "name": "paragonie/constant_time_encoding",
@@ -203,16 +208,16 @@
         },
         {
             "name": "paragonie/random_compat",
-            "version": "v2.0.18",
+            "version": "v2.0.19",
             "source": {
                 "type": "git",
                 "url": "https://github.com/paragonie/random_compat.git",
-                "reference": "0a58ef6e3146256cc3dc7cc393927bcc7d1b72db"
+                "reference": "446fc9faa5c2a9ddf65eb7121c0af7e857295241"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/paragonie/random_compat/zipball/0a58ef6e3146256cc3dc7cc393927bcc7d1b72db",
-                "reference": "0a58ef6e3146256cc3dc7cc393927bcc7d1b72db",
+                "url": "https://api.github.com/repos/paragonie/random_compat/zipball/446fc9faa5c2a9ddf65eb7121c0af7e857295241",
+                "reference": "446fc9faa5c2a9ddf65eb7121c0af7e857295241",
                 "shasum": ""
             },
             "require": {
@@ -248,7 +253,7 @@
                 "pseudorandom",
                 "random"
             ],
-            "time": "2019-01-03T20:59:08+00:00"
+            "time": "2020-10-15T10:06:57+00:00"
         },
         {
             "name": "psr/log",
@@ -299,16 +304,16 @@
         },
         {
             "name": "symfony/polyfill-php56",
-            "version": "v1.17.0",
+            "version": "v1.19.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-php56.git",
-                "reference": "e3c8c138280cdfe4b81488441555583aa1984e23"
+                "reference": "ea19621731cbd973a6702cfedef3419768bf3372"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-php56/zipball/e3c8c138280cdfe4b81488441555583aa1984e23",
-                "reference": "e3c8c138280cdfe4b81488441555583aa1984e23",
+                "url": "https://api.github.com/repos/symfony/polyfill-php56/zipball/ea19621731cbd973a6702cfedef3419768bf3372",
+                "reference": "ea19621731cbd973a6702cfedef3419768bf3372",
                 "shasum": ""
             },
             "require": {
@@ -318,7 +323,11 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.17-dev"
+                    "dev-main": "1.19-dev"
+                },
+                "thanks": {
+                    "name": "symfony/polyfill",
+                    "url": "https://github.com/symfony/polyfill"
                 }
             },
             "autoload": {
@@ -365,20 +374,20 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2020-05-12T16:47:27+00:00"
+            "time": "2020-10-23T09:01:57+00:00"
         },
         {
             "name": "symfony/polyfill-util",
-            "version": "v1.17.0",
+            "version": "v1.19.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-util.git",
-                "reference": "4afb4110fc037752cf0ce9869f9ab8162c4e20d7"
+                "reference": "8df0c3e6a4b85df9a5c6f3f2f46fba5c5c47058a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-util/zipball/4afb4110fc037752cf0ce9869f9ab8162c4e20d7",
-                "reference": "4afb4110fc037752cf0ce9869f9ab8162c4e20d7",
+                "url": "https://api.github.com/repos/symfony/polyfill-util/zipball/8df0c3e6a4b85df9a5c6f3f2f46fba5c5c47058a",
+                "reference": "8df0c3e6a4b85df9a5c6f3f2f46fba5c5c47058a",
                 "shasum": ""
             },
             "require": {
@@ -387,7 +396,11 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.17-dev"
+                    "dev-main": "1.19-dev"
+                },
+                "thanks": {
+                    "name": "symfony/polyfill",
+                    "url": "https://github.com/symfony/polyfill"
                 }
             },
             "autoload": {
@@ -431,7 +444,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2020-05-12T16:14:59+00:00"
+            "time": "2020-10-21T09:57:48+00:00"
         }
     ],
     "packages-dev": [],
