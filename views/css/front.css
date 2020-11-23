@@ -29,10 +29,21 @@
 }
 
 p.payment_module.onpay a {
-    background: #fbfbfb;
-    padding: 19px 40px 19px 8px;
+    background-repeat: no-repeat;
+    background-position: 6px 28px; 
+    background-size: 86px 36px;
+    background-color: #fbfbfb;
 }
-p.payment_module.onpay img {
+
+p.payment_module.onpay a.expanded {
+    padding: 20px 40px 20px 20px;
+}
+
+p.payment_module.onpay .logos {
+    display: block;
+    margin-top: 5px;
+}
+p.payment_module.onpay .logos img {
     margin: 1px 2px 1px 0px;
 }
 p.payment_module.onpay a:after {
@@ -40,13 +51,12 @@ p.payment_module.onpay a:after {
     content: "\f054";
     position: absolute;
     right: 15px;
-    margin-top: -11px;
+    margin-top: -15px;
     top: 50%;
     font-family: "FontAwesome";
     font-size: 25px;
     height: 22px;
     width: 14px;
-    color: #777;
 }
 
 .onpay form {

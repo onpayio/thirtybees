@@ -44,6 +44,7 @@ class Onpay extends PaymentModule
     const SETTING_ONPAY_TOKEN = 'ONPAY_TOKEN';
     const SETTING_ONPAY_TESTMODE = 'ONPAY_TESTMODE_ENABLED';
     const SETTING_ONPAY_3D_SECURE_ENABLED = 'ONPAY_3D_SECURE_ENABLED';
+    const SETTING_ONPAY_CARDLOGOS = 'ONPAY_CARD_LOGOS';
 
     protected $htmlContent = '';
 
@@ -101,7 +102,8 @@ class Onpay extends PaymentModule
             !$this->registerHook('shoppingCartExtra') ||
             !$this->registerHook('header') ||
             !Configuration::updateValue(self::SETTING_ONPAY_TESTMODE, 0) ||
-            !Configuration::updateValue(self::SETTING_ONPAY_3D_SECURE_ENABLED, 0)
+            !Configuration::updateValue(self::SETTING_ONPAY_3D_SECURE_ENABLED, 0) || 
+            !Configuration::updateValue(self::SETTING_ONPAY_CARDLOGOS, json_encode(['mastercard', 'visa'])) // Set default values for card logos
         )
         {
             return false;
@@ -330,12 +332,13 @@ class Onpay extends PaymentModule
                 'this_path_bw' => $this->_path,
                 'this_path_ssl' => Tools::getShopDomainSsl(true, true).__PS_BASE_URI__.'modules/'.$this->name.'/',
                 'viabill' => Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_VIABILL),
-                'viabill_fields' > $viaBillWindowFields,
+                'viabill_fields' => $viaBillWindowFields,
                 'mobilepay' => Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_MOBILEPAY),
                 'mobilepay_fields' => $mobilePayWindowFields,
                 'card' => Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_CARD),
                 'card_fields' => $cardWindowFields,
                 'actionUrl' => $actionUrl,
+                'card_logos' => json_decode(Configuration::get(self::SETTING_ONPAY_CARDLOGOS), true),
             ));
 
             return $this->display(__FILE__, 'views/hook/payment.tpl');
@@ -574,6 +577,14 @@ class Onpay extends PaymentModule
             }
 
             Configuration::updateValue(self::SETTING_ONPAY_3D_SECURE_ENABLED, Tools::getValue(self::SETTING_ONPAY_3D_SECURE_ENABLED));
+
+            $cardLogos = [];
+            foreach($this->getCardLogoOptions() as $cardLogo) {
+                if (Tools::getValue(self::SETTING_ONPAY_CARDLOGOS . '_' . $cardLogo['id_option'])) {
+                    $cardLogos[] = $cardLogo['id_option'];
+                }
+            }
+            Configuration::updateValue(self::SETTING_ONPAY_CARDLOGOS, json_encode($cardLogos));
         }
         $this->htmlContent .= $this->displayConfirmation($this->l('Settings updated'));
     }
@@ -709,6 +720,23 @@ class Onpay extends PaymentModule
                         'label' => $this->l('Window secret'),
                         'name' => 'ONPAY_SECRET',
                     ),
+                    array(
+                        'type' => 'checkbox',
+                        'label' => $this->l('Card logos'),
+                        'desc' => $this->l('Card logos shown for the Card payment method'),
+                        'name' => self::SETTING_ONPAY_CARDLOGOS,
+                        'values' => array(
+                            'query' => $this->getCardLogoOptions(),
+                            'id' => 'id_option',
+                            'name' => 'name'
+                        ),
+                        'expand' => array(
+                            ['print_total'] => count($this->getCardLogoOptions()),
+                            'default' => 'show',
+                            'show' => array('text' => $this->l('Show'), 'icon' => 'plus-sign-alt'),
+                            'hide' => array('text' => $this->l('Hide'), 'icon' => 'minus-sign-alt')
+                        ),
+                    ),
                 ),
                 'submit' => array(
                     'title' => $this->l('Save'),
@@ -743,7 +771,7 @@ class Onpay extends PaymentModule
      */
     public function getConfigFieldsValues()
     {
-        return array(
+        $values = array(
             self::SETTING_ONPAY_GATEWAY_ID => Tools::getValue(self::SETTING_ONPAY_GATEWAY_ID, Configuration::get(self::SETTING_ONPAY_GATEWAY_ID)),
             self::SETTING_ONPAY_SECRET => Tools::getValue(self::SETTING_ONPAY_SECRET, Configuration::get(self::SETTING_ONPAY_SECRET)),
             self::SETTING_ONPAY_EXTRA_PAYMENTS_MOBILEPAY => Tools::getValue(self::SETTING_ONPAY_EXTRA_PAYMENTS_MOBILEPAY, Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_MOBILEPAY)),
@@ -755,6 +783,12 @@ class Onpay extends PaymentModule
             self::SETTING_ONPAY_3D_SECURE_ENABLED => Tools::getValue(self::SETTING_ONPAY_3D_SECURE_ENABLED, Configuration::get(self::SETTING_ONPAY_3D_SECURE_ENABLED)),
             self::SETTING_ONPAY_TESTMODE => Tools::getValue(self::SETTING_ONPAY_TESTMODE, Configuration::get(self::SETTING_ONPAY_TESTMODE)),
         );
+
+        foreach (json_decode(Configuration::get(self::SETTING_ONPAY_CARDLOGOS), true) as $cardLogo) {
+            $values[self::SETTING_ONPAY_CARDLOGOS . '_' . $cardLogo] = 'on';
+        }
+
+        return $values;
     }
 
     /**
@@ -897,6 +931,52 @@ class Onpay extends PaymentModule
             return $languageRelations[$languageIso];
         }
         return 'en';
+    }
+
+    /**
+     * Returns a prepared list of card logos
+     *
+     * @return array
+     */
+    private function getCardLogoOptions() {
+        return [
+            [
+                'name' => $this->l('American Express/AMEX'),
+                'id_option' => 'american-express',
+            ],
+            [
+                'name' => $this->l('Dankort'),
+                'id_option' => 'dankort',
+            ],
+            [
+                'name' => $this->l('Diners'),
+                'id_option' => 'diners',
+            ],
+            [
+                'name' => $this->l('Discover'),
+                'id_option' => 'discover',
+            ],
+            [
+                'name' => $this->l('Forbrugsforeningen'),
+                'id_option' => 'forbrugsforeningen',
+            ],
+            [
+                'name' => $this->l('JCB'),
+                'id_option' => 'jcb',
+            ],
+            [
+                'name' => $this->l('Mastercard/Maestro'),
+                'id_option' => 'mastercard',
+            ],
+            [
+                'name' => $this->l('UnionPay'),
+                'id_option' => 'unionpay',
+            ],
+            [
+                'name' => $this->l('Visa/VPay/Visa Electron '),
+                'id_option' => 'visa',
+            ],
+        ];
     }
 
     /**

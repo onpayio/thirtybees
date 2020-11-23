@@ -25,12 +25,24 @@
 
 {if $card}
 <p class="payment_module onpay">
-    <a href="javascript:$('#onpayForm').submit();" title="{l s='Pay by credit card' mod='onpay'}">
-        <img src="{$this_path_bw}/views/img/dankort.svg" width="86" height="49"/>
-        <img src="{$this_path_bw}/views/img/mastercard.svg" width="86" height="49"/>
-        <img src="{$this_path_bw}/views/img/visa.svg" width="86" height="49"/>
-        {l s='Pay by credit card' mod='onpay'}
-    </a>
+    {if $card_logos|@count eq 0}
+        <a href="javascript:$('#onpayForm').submit();" title="{l s='Pay by credit card' mod='onpay'}" style="background-image:url('{$this_path_bw}views/img/generic.svg')">
+            {l s='Pay by credit card' mod='onpay'}
+        </a>
+    {elseif $card_logos|@count eq 1}
+        <a href="javascript:$('#onpayForm').submit();" title="{l s='Pay by credit card' mod='onpay'}" style="background-image:url('{$this_path_bw}views/img/{$card_logos[0]}.svg')">
+            {l s='Pay by credit card' mod='onpay'}
+        </a>
+    {elseif $card_logos|@count gt 1}
+        <a class="expanded" href="javascript:$('#onpayForm').submit();" title="{l s='Pay by credit card' mod='onpay'}">
+            {l s='Pay by credit card' mod='onpay'}
+            <span class="logos">
+                {foreach from=$card_logos item=logo}
+                    <img src="{$this_path_bw}views/img/{$logo}.svg" class="onpay card-logo" height="36">
+                {/foreach}
+            </span>
+        </a>
+    {/if}
 </p>
     <form method="post" action="{$actionUrl}" id="onpayForm">
         {foreach from=$card_fields key="key" item="item" }
@@ -42,8 +54,7 @@
 
 {if $mobilepay }
 <p class="payment_module onpay">
-    <a href="javascript:$('#onpayMobilepayForm').submit();" title="{l s='Pay by Mobilepay' mod='onpay'}">
-        <img src="{$this_path_bw}/views/img/mobilepay.svg" width="86" height="49"/>
+    <a href="javascript:$('#onpayMobilepayForm').submit();" title="{l s='Pay by Mobilepay' mod='onpay'}" style="background-image:url('{$this_path_bw}views/img/mobilepay.svg')">
         {l s='Pay by Mobilepay' mod='onpay'}
     </a>
 </p>
@@ -56,12 +67,12 @@
 
 {if $viabill }
 <p class="payment_module onpay">
-    <a href="javascript:$('#onpayViabillForm').submit();" title="{l s='Pay by Viabill' mod='onpay'}">
-        <img src="{$this_path_bw}/views/img/viabill.svg" width="86" height="49"/>
+    <a href="javascript:$('#onpayViabillForm').submit();" title="{l s='Pay by Viabill' mod='onpay'}" style="background-image:url('{$this_path_bw}views/img/viabill.svg')">
         {l s='Pay by Viabill' mod='onpay'}
     </a>
+
     <form method="post" action="{$actionUrl}" id="onpayViabillForm">
-        {foreach from=$mobilepay_fields key="key" item="item" }
+        {foreach from=$viabill_fields key="key" item="item" }
             <input type="hidden" name="{$key}" value="{$item}">
         {/foreach}
     </form>
