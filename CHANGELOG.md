@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.6] - 2020-12-07
+- Added feature for choosing card logos shown on payment page
+- Updated Mobilepay logo
+
 ## [1.0.5] - 2020-11-03
 - Added language selector and automatic language for payment window
 - Implemented paymentinfo for paymentwindow, setting available values
