@@ -193,7 +193,7 @@ class Onpay extends PaymentModule
         $paymentWindow->setCallbackUrl($this->context->link->getModuleLink('onpay', 'callback', [], Configuration::get('PS_SSL_ENABLED'), null));
         $paymentWindow->setWebsite(Tools::getHttpHost(true).__PS_BASE_URI__);
 
-        if (!defined('_TB_VERSION_')) {
+        if (defined('_TB_VERSION_')) {
             $paymentWindow->setPlatform('thirtybees', $this->version, _TB_VERSION_);
         } else {
             $paymentWindow->setPlatform('prestashop16', $this->version, _PS_VERSION_);
