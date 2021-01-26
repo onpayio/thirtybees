@@ -37,6 +37,7 @@ class Onpay extends PaymentModule
     const SETTING_ONPAY_SECRET = 'ONPAY_SECRET';
     const SETTING_ONPAY_EXTRA_PAYMENTS_MOBILEPAY = 'ONPAY_EXTRA_PAYMENTS_MOBILEPAY';
     const SETTING_ONPAY_EXTRA_PAYMENTS_VIABILL = 'ONPAY_EXTRA_PAYMENTS_VIABILL';
+    const SETTING_ONPAY_EXTRA_PAYMENTS_ANYDAY = 'ONPAY_EXTRA_PAYMENTS_ANYDAY_SPLIT';
     const SETTING_ONPAY_EXTRA_PAYMENTS_CARD = 'ONPAY_EXTRA_PAYMENTS_CARD';
     const SETTING_ONPAY_PAYMENTWINDOW_DESIGN = 'ONPAY_PAYMENTWINDOW_DESIGN';
     const SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE = 'ONPAY_PAYMENTWINDOW_LANGUAGE';
@@ -125,6 +126,7 @@ class Onpay extends PaymentModule
             self::SETTING_ONPAY_SECRET,
             self::SETTING_ONPAY_EXTRA_PAYMENTS_MOBILEPAY,
             self::SETTING_ONPAY_EXTRA_PAYMENTS_VIABILL,
+            self::SETTING_ONPAY_EXTRA_PAYMENTS_ANYDAY,
             self::SETTING_ONPAY_EXTRA_PAYMENTS_CARD,
             self::SETTING_ONPAY_PAYMENTWINDOW_DESIGN,
             self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE,
@@ -190,6 +192,12 @@ class Onpay extends PaymentModule
         $paymentWindow->setType("payment");
         $paymentWindow->setCallbackUrl($this->context->link->getModuleLink('onpay', 'callback', [], Configuration::get('PS_SSL_ENABLED'), null));
         $paymentWindow->setWebsite(Tools::getHttpHost(true).__PS_BASE_URI__);
+
+        if (!defined('_TB_VERSION_')) {
+            $paymentWindow->setPlatform('thirtybees', $this->version, _TB_VERSION_);
+        } else {
+            $paymentWindow->setPlatform('prestashop16', $this->version, _PS_VERSION_);
+        }
 
         if(Configuration::get(self::SETTING_ONPAY_PAYMENTWINDOW_DESIGN)) {
             $paymentWindow->setDesign(Configuration::get(self::SETTING_ONPAY_PAYMENTWINDOW_DESIGN));
@@ -322,6 +330,12 @@ class Onpay extends PaymentModule
                 $viaBillWindowFields = [];
             }
 
+            if(Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_ANYDAY)) {
+                $anydayWindowFields = $this->generatePaymentWindow($order, \OnPay\API\PaymentWindow::METHOD_ANYDAY, $currency)->getFormFields();
+            } else {
+                $anydayWindowFields = [];
+            }
+
             if(Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_MOBILEPAY)) {
                 $mobilePayWindowFields = $this->generatePaymentWindow($order, \OnPay\API\PaymentWindow::METHOD_MOBILEPAY, $currency)->getFormFields();
             } else {
@@ -334,6 +348,8 @@ class Onpay extends PaymentModule
                 'this_path_ssl' => Tools::getShopDomainSsl(true, true).__PS_BASE_URI__.'modules/'.$this->name.'/',
                 'viabill' => Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_VIABILL),
                 'viabill_fields' => $viaBillWindowFields,
+                'anyday' => Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_ANYDAY),
+                'anyday_fields' => $anydayWindowFields,
                 'mobilepay' => Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_MOBILEPAY),
                 'mobilepay_fields' => $mobilePayWindowFields,
                 'card' => Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_CARD),
@@ -547,6 +563,12 @@ class Onpay extends PaymentModule
                 Configuration::updateValue(self::SETTING_ONPAY_EXTRA_PAYMENTS_VIABILL, false);
             }
 
+            if(Tools::getValue(self::SETTING_ONPAY_EXTRA_PAYMENTS_ANYDAY)) {
+                Configuration::updateValue(self::SETTING_ONPAY_EXTRA_PAYMENTS_ANYDAY, true);
+            } else {
+                Configuration::updateValue(self::SETTING_ONPAY_EXTRA_PAYMENTS_ANYDAY, false);
+            }
+
             if(Tools::getValue(self::SETTING_ONPAY_EXTRA_PAYMENTS_CARD)) {
                 Configuration::updateValue(self::SETTING_ONPAY_EXTRA_PAYMENTS_CARD, true);
             } else {
@@ -624,6 +646,11 @@ class Onpay extends PaymentModule
                                 [
                                     'id' => 'VIABILL',
                                     'name' => $this->l('ViaBill'),
+                                    'val' => true
+                                ],
+                                [
+                                    'id' => 'ANYDAY_SPLIT',
+                                    'name' => $this->l('Anyday Split'),
                                     'val' => true
                                 ]
                             ],
@@ -777,6 +804,7 @@ class Onpay extends PaymentModule
             self::SETTING_ONPAY_SECRET => Tools::getValue(self::SETTING_ONPAY_SECRET, Configuration::get(self::SETTING_ONPAY_SECRET)),
             self::SETTING_ONPAY_EXTRA_PAYMENTS_MOBILEPAY => Tools::getValue(self::SETTING_ONPAY_EXTRA_PAYMENTS_MOBILEPAY, Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_MOBILEPAY)),
             self::SETTING_ONPAY_EXTRA_PAYMENTS_VIABILL => Tools::getValue(self::SETTING_ONPAY_EXTRA_PAYMENTS_VIABILL, Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_VIABILL)),
+            self::SETTING_ONPAY_EXTRA_PAYMENTS_ANYDAY => Tools::getValue(self::SETTING_ONPAY_EXTRA_PAYMENTS_ANYDAY, Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_ANYDAY)),
             self::SETTING_ONPAY_EXTRA_PAYMENTS_CARD => Tools::getValue(self::SETTING_ONPAY_EXTRA_PAYMENTS_CARD, Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_CARD)),
             self::SETTING_ONPAY_PAYMENTWINDOW_DESIGN => Tools::getValue(self::SETTING_ONPAY_PAYMENTWINDOW_DESIGN, Configuration::get(self::SETTING_ONPAY_PAYMENTWINDOW_DESIGN)),
             self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE => Tools::getValue(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE, Configuration::get(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE)),

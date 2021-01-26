@@ -78,3 +78,17 @@
     </form>
 </p>
 {/if}
+
+{if $anyday }
+<p class="payment_module onpay">
+    <a href="javascript:$('#onpayAnydayForm').submit();" title="{l s='Pay by Anyday Split' mod='onpay'}" style="background-image:url('{$this_path_bw}views/img/anyday.svg')">
+        {l s='Pay by Anyday Split' mod='onpay'}
+    </a>
+
+    <form method="post" action="{$actionUrl}" id="onpayAnydayForm">
+        {foreach from=$anyday_fields key="key" item="item" }
+            <input type="hidden" name="{$key}" value="{$item}">
+        {/foreach}
+    </form>
+</p>
+{/if}
