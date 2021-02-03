@@ -40,7 +40,7 @@ class TokenStorage implements \OnPay\TokenStorageInterface
         // We need to unescape the string when getting the value again within the same runtime, since the escaped value is 'cached' and wrongfully returned.
         // This is a reported bug, that has been fixed in releases of ThirtyBees later than 1.0.8.
         // This workaround does not have any implications for either Prestashop nor ThirtyBees v. 1.0.8+
-        return str_replace('\"', '"', Configuration::get('ONPAY_TOKEN'));
+        return str_replace('\"', '"', stripslashes(Configuration::get('ONPAY_TOKEN')));
     }
 
     /**
