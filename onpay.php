@@ -46,6 +46,7 @@ class Onpay extends PaymentModule
     const SETTING_ONPAY_TESTMODE = 'ONPAY_TESTMODE_ENABLED';
     const SETTING_ONPAY_3D_SECURE_ENABLED = 'ONPAY_3D_SECURE_ENABLED';
     const SETTING_ONPAY_CARDLOGOS = 'ONPAY_CARD_LOGOS';
+    const SETTING_ONPAY_HOOK_VERSION = 'ONPAY_HOOK_VERSION';
 
     protected $htmlContent = '';
 
@@ -84,6 +85,48 @@ class Onpay extends PaymentModule
         $this->description = $this->l('OnPay');
         $this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
         $this->currencyHelper = new CurrencyHelper();
+
+        $this->registerHooks();
+    }
+
+    private function registerHooks() {
+        $hookVersion = 2;
+        $currentHookVersion = Configuration::get(self::SETTING_ONPAY_HOOK_VERSION, null, null, null, 0);
+
+        if ($currentHookVersion >= $hookVersion) {
+            return;
+        }
+
+        $hooks = [
+            1 => [
+                'payment',
+                'paymentOptions',
+                'displayPaymentEU',
+                'paymentReturn',
+                'postUpdateOrderStatus',
+                'shoppingCart',
+                'shoppingCartExtra',
+                'adminOrder',
+                'header',
+            ],
+            2 => [
+                'backOfficeHeader',
+            ],
+        ];
+
+        $highestVersion = 0;
+        foreach ($hooks as $version => $versionHooks) {
+            if ($hookVersion >= $version) {
+                foreach ($versionHooks as $hook) {
+                    if (!$this->isRegisteredInHook($hook)) {
+                        $this->registerHook($hook);
+                    }
+                }
+                $highestVersion = $hookVersion;
+            }
+        }
+
+        Configuration::updateValue(self::SETTING_ONPAY_HOOK_VERSION, $highestVersion);
     }
 
     /**
@@ -93,15 +136,6 @@ class Onpay extends PaymentModule
     public function install() {
         if (
             !parent::install() ||
-            !$this->registerHook('payment') ||
-            !$this->registerHook('paymentOptions') ||
-            !$this->registerHook('displayPaymentEU') ||
-            !$this->registerHook('paymentReturn') ||
-            !$this->registerHook('postUpdateOrderStatus') ||
-            !$this->registerHook('shoppingCart') ||
-            !$this->registerHook('adminOrder') ||
-            !$this->registerHook('shoppingCartExtra') ||
-            !$this->registerHook('header') ||
             !Configuration::updateValue(self::SETTING_ONPAY_TESTMODE, 0) ||
             !Configuration::updateValue(self::SETTING_ONPAY_3D_SECURE_ENABLED, 0) || 
             !Configuration::updateValue(self::SETTING_ONPAY_CARDLOGOS, json_encode(['mastercard', 'visa'])) // Set default values for card logos
@@ -149,7 +183,14 @@ class Onpay extends PaymentModule
      */
     public function hookHeader() {
         $this->context->controller->addCSS($this->_path.'/views/css/front.css');
-        $this->context->controller->addJS($this->_path . '/views/js/front.js');
+    }
+
+    /**
+     * Hooks custom JS to backoffice header
+     */
+    public function hookBackOfficeHeader() {
+        $this->context->controller->addJquery();
+        $this->context->controller->addJS($this->_path . '/views/js/back.js');
     }
 
     /**
@@ -157,14 +198,6 @@ class Onpay extends PaymentModule
      */
     public function hookPaymentReturn() {
         return $this->display(__FILE__, 'views/hook/payment_return.tpl');
-    }
-
-    /**
-     * Hooks CSS to header to payment page
-     */
-    public function hookPaymentTop()
-    {
-        $this->hookHeader();
     }
 
     /**
@@ -369,8 +402,6 @@ class Onpay extends PaymentModule
      * @throws \OnPay\API\Exception\ApiException
      */
     public function getContent() {
-        $this->hookHeader();
-
         if('true' === Tools::getValue('detach')) {
             $params = [];
             $params['token'] = Tools::getAdminTokenLite('AdminModules');
@@ -433,9 +464,7 @@ class Onpay extends PaymentModule
      * @return mixed
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function hookAdminOrder($params)
-    {
-        $this->hookHeader();
+    public function hookAdminOrder($params) {
         $order = new Order($params['id_order']);
         $payments = $order->getOrderPayments();
 
