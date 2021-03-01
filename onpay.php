@@ -138,6 +138,7 @@ class Onpay extends PaymentModule
             !parent::install() ||
             !Configuration::updateValue(self::SETTING_ONPAY_TESTMODE, 0) ||
             !Configuration::updateValue(self::SETTING_ONPAY_3D_SECURE_ENABLED, 0) || 
+            !Configuration::updateValue(self::SETTING_ONPAY_HOOK_VERSION, 0) ||
             !Configuration::updateValue(self::SETTING_ONPAY_CARDLOGOS, json_encode(['mastercard', 'visa'])) // Set default values for card logos
         )
         {
