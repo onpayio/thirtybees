@@ -167,7 +167,9 @@ class Onpay extends PaymentModule
             self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE_AUTO,
             self::SETTING_ONPAY_TOKEN,
             self::SETTING_ONPAY_TESTMODE,
-            self::SETTING_ONPAY_3D_SECURE_ENABLED
+            self::SETTING_ONPAY_3D_SECURE_ENABLED,
+            self::SETTING_ONPAY_CARDLOGOS,
+            self::SETTING_ONPAY_HOOK_VERSION
         ];
 
         foreach ($configKeys as $key) {
