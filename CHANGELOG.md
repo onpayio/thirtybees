@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 - Added Button on settings page for refreshing gateway id and window secret
+- Added better handling of callbacks, with custom awaiting order state, and locked state for carts
 
 ## [1.0.7] - 2021-01-28
 - Updated version of onpayio/php-sdk
