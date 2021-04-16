@@ -27,8 +27,9 @@ class OnpayCallbackModuleFrontController extends ModuleFrontController
 {
     public function postProcess()
     {
+        $onpay = Module::getInstanceByName('onpay');
         $paymentWindow = new \OnPay\API\PaymentWindow();
-        $paymentWindow->setSecret(Configuration::get('ONPAY_SECRET'));
+        $paymentWindow->setSecret(Configuration::get(Onpay::SETTING_ONPAY_SECRET));
 
         /** @var ContextCore $context */
         $context = Context::getContext();
@@ -47,7 +48,7 @@ class OnpayCallbackModuleFrontController extends ModuleFrontController
         /** @var CustomerCore $customer */
         $customer = new Customer($cart->id_customer);
         if (!Validate::isLoadedObject($customer)) {
-            $this->jsonResponse('Invalid customer', true, 500);
+            $this->jsonResponse('Invalid customer', true, 1000); // TB can be a bit slow
         }
         $context->customer = $customer;
 
@@ -63,30 +64,59 @@ class OnpayCallbackModuleFrontController extends ModuleFrontController
             $this->jsonResponse('Payment module unavailable', true, 403);
         }
 
-        $total = (float)$cart->getOrderTotal(true, Cart::BOTH);
-        $currency = $this->context->currency;
+        // Get orderId
+        $orderId = OrderCore::getOrderByCartId($cart->id);
 
-        // Validate order
-        $this->module->validateOrder(
-            $cart->id,
-            Configuration::get('PS_OS_PAYMENT'),
-            $total,
-            'OnPay',
-            null,
-            [
-                'transaction_id' => Tools::getValue('onpay_uuid'),
-                'card_brand' => Tools::getValue('onpay_cardtype')
-            ],
-            (int)$currency->id,
-            false,
-            $customer->secure_key
-        );
+        // Check if order creation is already happening
+        if ($orderId === false && $onpay->isCartLocked($cart->id)) {
+            // Wait for order creation to end for 500ms, and try to get order again.
+            usleep(500);
+            $orderId = OrderCore::getOrderByCartId($cart->id);
+            if ($orderId === false) {
+                // If still no order created, tell client to try again later
+                $this->jsonResponse('Cart locked, try again later', true, 400);
+            }
+        }
+
+        // Validate order if none is validated yet
+        if ($orderId === false) {
+            // Lock cart while creating order
+            $onpay->lockCart($cart->id);
+
+            $total = (float)$cart->getOrderTotal(true, Cart::BOTH);
+            $currency = $this->context->currency;
+
+            $this->module->validateOrder(
+                $cart->id,
+                Configuration::get('PS_OS_PAYMENT'),
+                $total,
+                'OnPay',
+                null,
+                [
+                    'transaction_id' => Tools::getValue('onpay_uuid'),
+                    'card_brand' => Tools::getValue('onpay_cardtype')
+                ],
+                (int)$currency->id,
+                false,
+                $customer->secure_key
+            );
+
+            // Unlock cart again
+            $onpay->unlockCart($cart->id);
+        } else {
+            // Order is already created, set status to payment complete
+            $order = new Order($orderId);
+            $completeState = Configuration::get('PS_OS_PAYMENT');
+            if ($order->current_state !== $completeState) {
+                $order->setCurrentState(1);
+            }
+        }
+
         $this->jsonResponse('Order validated');
     }
 
     private function jsonResponse($message, $error = false, $responseCode = 200) {
-        header('Content-Type: application/json');
-        http_response_code($responseCode);
+        header('Content-Type: application/json', true, $responseCode);
         $response = [];
         if (!$error) {
             $response = ['success' => $message, 'error' => false];
