@@ -47,6 +47,9 @@ class Onpay extends PaymentModule
     const SETTING_ONPAY_3D_SECURE_ENABLED = 'ONPAY_3D_SECURE_ENABLED';
     const SETTING_ONPAY_CARDLOGOS = 'ONPAY_CARD_LOGOS';
     const SETTING_ONPAY_HOOK_VERSION = 'ONPAY_HOOK_VERSION';
+    const SETTING_ONPAY_ORDERSTATUS_AWAIT = 'ONPAY_OS_AWAIT';
+    const SETTING_ONPAY_LOCKEDCART_TABLE = 'onpay_locked_cart';
+    const SETTING_ONPAY_LOCKEDCART_TABLE_CREATED = 'ONPAY_LOCKEDCART_CREATED';
 
     protected $htmlContent = '';
 
@@ -87,6 +90,8 @@ class Onpay extends PaymentModule
         $this->currencyHelper = new CurrencyHelper();
 
         $this->registerHooks();
+        $this->registerOrderState();
+        $this->registerCartLockTable();
     }
 
     private function registerHooks() {
@@ -129,6 +134,73 @@ class Onpay extends PaymentModule
         Configuration::updateValue(self::SETTING_ONPAY_HOOK_VERSION, $highestVersion);
     }
 
+    private function registerOrderState() {
+        $awaitingStateName = 'Awaiting OnPay Payment';
+
+        // If configuration key exists no need to register state
+        if (Configuration::get(self::SETTING_ONPAY_ORDERSTATUS_AWAIT) !== false) {
+            return;
+        }
+
+        // check if order state exist
+        $state_exist = false;
+        foreach (OrderState::getOrderStates((int)$this->context->language->id) as $state) {
+            if (in_array($awaitingStateName, $state)) {
+                $state_exist = true;
+                break;
+            }
+        }
+
+        // If the state does not exist, we create it.
+        if (!$state_exist) {
+            // Create new order state
+            $orderState = new OrderState();
+            $orderState->color = '#4169E1'; // TB color for awaiting
+            $orderState->send_email = false;
+            $orderState->module_name = $this->name;
+            $orderState->name = array();
+            $orderState->unremovable = true;
+            $languages = Language::getLanguages(false);
+            foreach ($languages as $language) {
+                $orderState->name[$language['id_lang']] = $awaitingStateName;
+            }
+            // Add state
+            $orderState->add();
+            // Save order state ID for later use
+            Configuration::updateValue(self::SETTING_ONPAY_ORDERSTATUS_AWAIT, $orderState->id);
+        }
+    }
+
+    private function unregisterOrderState() {
+        if (Configuration::get(self::SETTING_ONPAY_ORDERSTATUS_AWAIT, null, null, null, 0) > 0) {
+            $orderState = new OrderState(Configuration::get(self::SETTING_ONPAY_ORDERSTATUS_AWAIT));
+            $orderState->delete();
+        }
+        return true;
+    }
+
+    /**
+     * Create table used for locked carts
+     */
+    private function registerCartLockTable() {
+        if (Configuration::get(self::SETTING_ONPAY_LOCKEDCART_TABLE_CREATED, null, null, null, false)) {
+            return;
+        }
+        $tableName = _DB_PREFIX_ . self::SETTING_ONPAY_LOCKEDCART_TABLE;
+        $db = Db::getInstance();
+        $db->execute('CREATE TABLE `' . $tableName . '` (`id_cart` INT(10) UNSIGNED NOT NULL)') !== false;
+        Configuration::updateValue(self::SETTING_ONPAY_LOCKEDCART_TABLE_CREATED, true);
+    }
+
+    /**
+     * Drop table used for locked carts
+     */
+    private function dropCartLockTable() {
+        $tableName = _DB_PREFIX_ . self::SETTING_ONPAY_LOCKEDCART_TABLE;
+        $db = Db::getInstance();
+        return $db->execute('DROP TABLE `' . $tableName . '`') !== false;
+    }
+
     /**
      * Plugin install procedure
      * @return bool
@@ -152,7 +224,7 @@ class Onpay extends PaymentModule
      */
     public function uninstall() {
 
-        if(!parent::uninstall()) {
+        if(!parent::uninstall() || !$this->unregisterOrderState() || !$this->dropCartLockTable()) {
             return false;
         }
 
@@ -170,7 +242,9 @@ class Onpay extends PaymentModule
             self::SETTING_ONPAY_TESTMODE,
             self::SETTING_ONPAY_3D_SECURE_ENABLED,
             self::SETTING_ONPAY_CARDLOGOS,
-            self::SETTING_ONPAY_HOOK_VERSION
+            self::SETTING_ONPAY_HOOK_VERSION,
+            self::SETTING_ONPAY_ORDERSTATUS_AWAIT,
+            self::SETTING_ONPAY_LOCKEDCART_TABLE_CREATED,
         ];
 
         foreach ($configKeys as $key) {
@@ -793,7 +867,7 @@ class Onpay extends PaymentModule
                             'name' => 'name'
                         ),
                         'expand' => array(
-                            ['print_total'] => count($this->getCardLogoOptions()),
+                            'print_total' => count($this->getCardLogoOptions()),
                             'default' => 'show',
                             'show' => array('text' => $this->l('Show'), 'icon' => 'plus-sign-alt'),
                             'hide' => array('text' => $this->l('Hide'), 'icon' => 'minus-sign-alt')
@@ -852,6 +926,37 @@ class Onpay extends PaymentModule
         }
 
         return $values;
+    }
+
+    /**
+     * Whether cart ID is in locked carts table
+     */
+    public function isCartLocked($cartId) {
+        $sql = new DbQuery();
+        $sql->select('*');
+        $sql->from(self::SETTING_ONPAY_LOCKEDCART_TABLE, 'lc');
+        $sql->where('lc.id_cart = ' . (int)$cartId);
+        $sql->limit('1');
+        $rows = Db::getInstance()->executeS($sql);
+        return count($rows) > 0;
+    }
+
+    /**
+     * Adds cart ID to locked carts table
+     */
+    public function lockCart($cartId) {
+        $db = Db::getInstance();
+        $db->insert(self::SETTING_ONPAY_LOCKEDCART_TABLE, [
+            'id_cart' => (int)$cartId,
+        ]);
+    }
+
+    /**
+     * Removes cart ID from locked carts table
+     */
+    public function unlockCart($cartId) {
+        $db = Db::getInstance();
+        $db->delete(self::SETTING_ONPAY_LOCKEDCART_TABLE, 'id_cart = ' . (int)$cartId);
     }
 
     /**
