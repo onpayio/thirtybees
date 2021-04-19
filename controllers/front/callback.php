@@ -69,8 +69,8 @@ class OnpayCallbackModuleFrontController extends ModuleFrontController
 
         // Check if order creation is already happening
         if ($orderId === false && $onpay->isCartLocked($cart->id)) {
-            // Wait for order creation to end for 500ms, and try to get order again.
-            usleep(500);
+            // Wait for order creation to end for 1s, and try to get order again. TB can be at bit slow.
+            sleep(1);
             $orderId = OrderCore::getOrderByCartId($cart->id);
             if ($orderId === false) {
                 // If still no order created, tell client to try again later
