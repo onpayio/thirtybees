@@ -111,7 +111,7 @@ class OnpayCallbackModuleFrontController extends ModuleFrontController
                 $order->setCurrentState($completeState);
 
                 // For some reason Prestashop 'forgets' the transaction id given on order validation, so we'll set again.
-                $payments = OrderPaymentCore::getByOrderId($orderId);
+                $payments = OrderPaymentCore::getByOrderReference($order->reference); // Older versions of TB has a bug in getByOrderId(), so we'll use reference instead.
                 if (!empty($payments)) {
                     $payment = $payments[0];
                     $payment->transaction_id = Tools::getValue('onpay_uuid');
