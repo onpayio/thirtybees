@@ -48,7 +48,7 @@ class OnpayCallbackModuleFrontController extends ModuleFrontController
         /** @var CustomerCore $customer */
         $customer = new Customer($cart->id_customer);
         if (!Validate::isLoadedObject($customer)) {
-            $this->jsonResponse('Invalid customer', true, 1000); // TB can be a bit slow
+            $this->jsonResponse('Invalid customer', true, 500);
         }
         $context->customer = $customer;
 
@@ -108,7 +108,15 @@ class OnpayCallbackModuleFrontController extends ModuleFrontController
             $order = new Order($orderId);
             $completeState = Configuration::get('PS_OS_PAYMENT');
             if ($order->current_state !== $completeState) {
-                $order->setCurrentState(1);
+                $order->setCurrentState($completeState);
+
+                // For some reason Prestashop 'forgets' the transaction id given on order validation, so we'll set again.
+                $payments = OrderPaymentCore::getByOrderId($orderId);
+                if (!empty($payments)) {
+                    $payment = $payments[0];
+                    $payment->transaction_id = Tools::getValue('onpay_uuid');
+                    $payment->update();
+                }
             }
         }
 
