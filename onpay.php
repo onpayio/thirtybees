@@ -38,6 +38,7 @@ class Onpay extends PaymentModule
     const SETTING_ONPAY_EXTRA_PAYMENTS_MOBILEPAY = 'ONPAY_EXTRA_PAYMENTS_MOBILEPAY';
     const SETTING_ONPAY_EXTRA_PAYMENTS_VIABILL = 'ONPAY_EXTRA_PAYMENTS_VIABILL';
     const SETTING_ONPAY_EXTRA_PAYMENTS_ANYDAY = 'ONPAY_EXTRA_PAYMENTS_ANYDAY_SPLIT';
+    const SETTING_ONPAY_EXTRA_PAYMENTS_VIPPS = 'ONPAY_EXTRA_PAYMENTS_VIPPS';
     const SETTING_ONPAY_EXTRA_PAYMENTS_CARD = 'ONPAY_EXTRA_PAYMENTS_CARD';
     const SETTING_ONPAY_PAYMENTWINDOW_DESIGN = 'ONPAY_PAYMENTWINDOW_DESIGN';
     const SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE = 'ONPAY_PAYMENTWINDOW_LANGUAGE';
@@ -234,6 +235,7 @@ class Onpay extends PaymentModule
             self::SETTING_ONPAY_EXTRA_PAYMENTS_MOBILEPAY,
             self::SETTING_ONPAY_EXTRA_PAYMENTS_VIABILL,
             self::SETTING_ONPAY_EXTRA_PAYMENTS_ANYDAY,
+            self::SETTING_ONPAY_EXTRA_PAYMENTS_VIPPS,
             self::SETTING_ONPAY_EXTRA_PAYMENTS_CARD,
             self::SETTING_ONPAY_PAYMENTWINDOW_DESIGN,
             self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE,
@@ -446,6 +448,12 @@ class Onpay extends PaymentModule
                 $anydayWindowFields = [];
             }
 
+            if(Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_VIPPS)) {
+                $vippsWindowFields = $this->generatePaymentWindow($order, \OnPay\API\PaymentWindow::METHOD_VIPPS, $currency)->getFormFields();
+            } else {
+                $vippsWindowFields = [];
+            }
+
             if(Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_MOBILEPAY)) {
                 $mobilePayWindowFields = $this->generatePaymentWindow($order, \OnPay\API\PaymentWindow::METHOD_MOBILEPAY, $currency)->getFormFields();
             } else {
@@ -460,6 +468,8 @@ class Onpay extends PaymentModule
                 'viabill_fields' => $viaBillWindowFields,
                 'anyday' => Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_ANYDAY),
                 'anyday_fields' => $anydayWindowFields,
+                'vipps' => Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_VIPPS),
+                'vipps_fields' => $vippsWindowFields,
                 'mobilepay' => Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_MOBILEPAY),
                 'mobilepay_fields' => $mobilePayWindowFields,
                 'card' => Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_CARD),
@@ -677,6 +687,12 @@ class Onpay extends PaymentModule
                 Configuration::updateValue(self::SETTING_ONPAY_EXTRA_PAYMENTS_ANYDAY, false);
             }
 
+            if(Tools::getValue(self::SETTING_ONPAY_EXTRA_PAYMENTS_VIPPS)) {
+                Configuration::updateValue(self::SETTING_ONPAY_EXTRA_PAYMENTS_VIPPS, true);
+            } else {
+                Configuration::updateValue(self::SETTING_ONPAY_EXTRA_PAYMENTS_VIPPS, false);
+            }
+
             if(Tools::getValue(self::SETTING_ONPAY_EXTRA_PAYMENTS_CARD)) {
                 Configuration::updateValue(self::SETTING_ONPAY_EXTRA_PAYMENTS_CARD, true);
             } else {
@@ -749,6 +765,11 @@ class Onpay extends PaymentModule
                                 [
                                     'id' => 'MOBILEPAY',
                                     'name' => $this->l('MobilePay'),
+                                    'val' => true
+                                ],
+                                [
+                                    'id' => 'VIPPS',
+                                    'name' => $this->l('Vipps'),
                                     'val' => true
                                 ],
                                 [
@@ -913,6 +934,7 @@ class Onpay extends PaymentModule
             self::SETTING_ONPAY_EXTRA_PAYMENTS_MOBILEPAY => Tools::getValue(self::SETTING_ONPAY_EXTRA_PAYMENTS_MOBILEPAY, Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_MOBILEPAY)),
             self::SETTING_ONPAY_EXTRA_PAYMENTS_VIABILL => Tools::getValue(self::SETTING_ONPAY_EXTRA_PAYMENTS_VIABILL, Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_VIABILL)),
             self::SETTING_ONPAY_EXTRA_PAYMENTS_ANYDAY => Tools::getValue(self::SETTING_ONPAY_EXTRA_PAYMENTS_ANYDAY, Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_ANYDAY)),
+            self::SETTING_ONPAY_EXTRA_PAYMENTS_VIPPS => Tools::getValue(self::SETTING_ONPAY_EXTRA_PAYMENTS_VIPPS, Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_VIPPS)),
             self::SETTING_ONPAY_EXTRA_PAYMENTS_CARD => Tools::getValue(self::SETTING_ONPAY_EXTRA_PAYMENTS_CARD, Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_CARD)),
             self::SETTING_ONPAY_PAYMENTWINDOW_DESIGN => Tools::getValue(self::SETTING_ONPAY_PAYMENTWINDOW_DESIGN, Configuration::get(self::SETTING_ONPAY_PAYMENTWINDOW_DESIGN)),
             self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE => Tools::getValue(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE, Configuration::get(self::SETTING_ONPAY_PAYMENTWINDOW_LANGUAGE)),
