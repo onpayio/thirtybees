@@ -65,6 +65,19 @@
     </form>
 {/if}
 
+{if $vipps }
+<p class="payment_module onpay">
+    <a href="javascript:$('#onpayVippsForm').submit();" title="{l s='Pay by Vipps' mod='onpay'}" style="background-image:url('{$this_path_bw}views/img/vipps.svg')">
+        {l s='Pay by Vipps' mod='onpay'}
+    </a>
+</p>
+    <form method="post" action="{$actionUrl}" id="onpayVippsForm">
+        {foreach from=$vipps_fields key="key" item="item" }
+            <input type="hidden" name="{$key}" value="{$item}">
+        {/foreach}
+    </form>
+{/if}
+
 {if $viabill }
 <p class="payment_module onpay">
     <a href="javascript:$('#onpayViabillForm').submit();" title="{l s='Pay by Viabill' mod='onpay'}" style="background-image:url('{$this_path_bw}views/img/viabill.svg')">
