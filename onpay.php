@@ -779,7 +779,7 @@ class Onpay extends PaymentModule
                                 ],
                                 [
                                     'id' => 'ANYDAY_SPLIT',
-                                    'name' => $this->l('Anyday Split'),
+                                    'name' => $this->l('Anyday'),
                                     'val' => true
                                 ]
                             ],

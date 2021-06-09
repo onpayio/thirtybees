@@ -94,8 +94,8 @@
 
 {if $anyday }
 <p class="payment_module onpay">
-    <a href="javascript:$('#onpayAnydayForm').submit();" title="{l s='Pay by Anyday Split' mod='onpay'}" style="background-image:url('{$this_path_bw}views/img/anyday.svg')">
-        {l s='Pay by Anyday Split' mod='onpay'}
+    <a href="javascript:$('#onpayAnydayForm').submit();" title="{l s='Pay by Anyday' mod='onpay'}" style="background-image:url('{$this_path_bw}views/img/anyday.svg')">
+        {l s='Pay by Anyday' mod='onpay'}
     </a>
 
     <form method="post" action="{$actionUrl}" id="onpayAnydayForm">
