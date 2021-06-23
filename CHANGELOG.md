@@ -5,7 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [1.0.11] - 2021-06-23
 - Updated Anyday branding
+- Implemented custom success page instead of relying on the build in confirmation page.
 
 ## [1.0.10] - 2021-05-27
 - Fixed bug with locked state of cart on callbacks.

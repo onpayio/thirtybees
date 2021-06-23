@@ -76,7 +76,7 @@ class Onpay extends PaymentModule
     {
         $this->name = 'onpay';
         $this->tab = 'payments_gateways';
-        $this->version = '1.0.10';
+        $this->version = '1.0.11';
         $this->controllers = ['payment', 'validation'];
         $this->author = 'OnPay';
         $this->currencies = true;
