@@ -29,8 +29,6 @@
 {assign var='current_step' value='payment'}
 {include file="$tpl_dir./order-steps.tpl"}
 
-{$customer}
-
 <p>
     <b>{l s='The payment was successful, and is awaiting processing.' mod='onpay'}</b><br/><br/>
     {l s='An email has been sent to your mail address.' mod='onpay'}<br/><br/>
