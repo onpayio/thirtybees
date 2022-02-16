@@ -78,6 +78,19 @@
     </form>
 {/if}
 
+{if $swish }
+    <p class="payment_module onpay">
+        <a href="javascript:$('#onpaySwishForm').submit();" title="{l s='Pay by Swish' mod='onpay'}" style="background-image:url('{$this_path_bw}views/img/swish.svg')">
+            {l s='Pay by Swish' mod='onpay'}
+        </a>
+    </p>
+    <form method="post" action="{$actionUrl}" id="onpaySwishForm">
+        {foreach from=$swish_fields key="key" item="item" }
+            <input type="hidden" name="{$key}" value="{$item}">
+        {/foreach}
+    </form>
+{/if}
+
 {if $viabill }
 <p class="payment_module onpay">
     <a href="javascript:$('#onpayViabillForm').submit();" title="{l s='Pay by Viabill' mod='onpay'}" style="background-image:url('{$this_path_bw}views/img/viabill.svg')">
