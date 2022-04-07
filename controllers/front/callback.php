@@ -35,7 +35,7 @@ class OnpayCallbackModuleFrontController extends ModuleFrontController
         $onpayReference = Tools::getValue('onpay_reference');
 
         // Validate query parameters and check that onpay_number is present
-        if (!$paymentWindow->validatePayment(Tools::getAllValues()) || null === $onpayUuid) {
+        if (!$paymentWindow->validatePayment(Tools::getAllValues()) || false === $onpayUuid) {
             $this->jsonResponse('Invalid values', true, 400);
         }
 
