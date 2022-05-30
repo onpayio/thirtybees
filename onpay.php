@@ -432,6 +432,7 @@ class Onpay extends PaymentModule
         if($this->getOnpayClient()->isAuthorized()) {
             $order = $params['cart'];
             $currency = new Currency($order->id_currency);
+            $currencyUtil = new \OnPay\API\Util\Currency($currency->iso_code);
 
             if (null === $this->currencyHelper->fromNumeric($currency->iso_code_num)) {
                 // If we can't determine the currency, we wont show the payment method at all.
@@ -439,57 +440,64 @@ class Onpay extends PaymentModule
             }
 
             $actionUrl = $this->generatePaymentWindow($order, \OnPay\API\PaymentWindow::METHOD_CARD, $currency)->getActionUrl();
-            if(Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_CARD)) {
+
+            $cardActive = false;
+            $cardWindowFields = [];
+            if(Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_CARD) && $currencyUtil->isPaymentMethodAvailable(\OnPay\API\PaymentWindow::METHOD_CARD)) {
+                $cardActive = true;
                 $cardWindowFields = $this->generatePaymentWindow($order, \OnPay\API\PaymentWindow::METHOD_CARD, $currency)->getFormFields();
-            } else {
-                $cardWindowFields = [];
             }
 
-            if(Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_VIABILL)) {
+            $viabillActive = false;
+            $viaBillWindowFields = [];
+            if(Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_VIABILL) && $currencyUtil->isPaymentMethodAvailable(\OnPay\API\PaymentWindow::METHOD_VIABILL)) {
+                $viabillActive = true;
                 $viaBillWindowFields = $this->generatePaymentWindow($order, \OnPay\API\PaymentWindow::METHOD_VIABILL, $currency)->getFormFields();
-            } else {
-                $viaBillWindowFields = [];
             }
 
-            if(Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_ANYDAY)) {
+            $anydayActive = false;
+            $anydayWindowFields = [];
+            if(Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_ANYDAY) && $currencyUtil->isPaymentMethodAvailable(\OnPay\API\PaymentWindow::METHOD_ANYDAY)) {
+                $anydayActive = true;
                 $anydayWindowFields = $this->generatePaymentWindow($order, \OnPay\API\PaymentWindow::METHOD_ANYDAY, $currency)->getFormFields();
-            } else {
-                $anydayWindowFields = [];
             }
 
-            if(Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_VIPPS)) {
+            $vippsActive = false;
+            $vippsWindowFields = [];
+            if(Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_VIPPS) && $currencyUtil->isPaymentMethodAvailable(\OnPay\API\PaymentWindow::METHOD_VIPPS)) {
+                $vippsActive = true;
                 $vippsWindowFields = $this->generatePaymentWindow($order, \OnPay\API\PaymentWindow::METHOD_VIPPS, $currency)->getFormFields();
-            } else {
-                $vippsWindowFields = [];
             }
 
-            if(Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_SWISH)) {
+            $swishActive = false;
+            $swishWindowFields = [];
+            if(Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_SWISH) && $currencyUtil->isPaymentMethodAvailable(\OnPay\API\PaymentWindow::METHOD_SWISH)) {
+                $swishActive = true;
                 $swishWindowFields = $this->generatePaymentWindow($order, \OnPay\API\PaymentWindow::METHOD_SWISH, $currency)->getFormFields();
-            } else {
-                $swishWindowFields = [];
             }
 
-            if(Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_MOBILEPAY)) {
+            $mobilePayActive = false;
+            $mobilePayWindowFields = [];
+            if(Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_MOBILEPAY) && $currencyUtil->isPaymentMethodAvailable(\OnPay\API\PaymentWindow::METHOD_MOBILEPAY)) {
+                $mobilePayActive = true;
                 $mobilePayWindowFields = $this->generatePaymentWindow($order, \OnPay\API\PaymentWindow::METHOD_MOBILEPAY, $currency)->getFormFields();
-            } else {
-                $mobilePayWindowFields = [];
             }
 
             $this->smarty->assign(array(
                 'this_path' => $this->_path,
                 'this_path_bw' => $this->_path,
                 'this_path_ssl' => Tools::getShopDomainSsl(true, true).__PS_BASE_URI__.'modules/'.$this->name.'/',
-                'viabill' => Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_VIABILL),
+                'viabill' => $viabillActive,
                 'viabill_fields' => $viaBillWindowFields,
-                'anyday' => Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_ANYDAY),
+                'anyday' => $anydayActive,
                 'anyday_fields' => $anydayWindowFields,
-                'vipps' => Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_VIPPS),
+                'vipps' => $vippsActive,
                 'vipps_fields' => $vippsWindowFields,
-                'swish' => Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_SWISH),
+                'swish' => $swishActive,
                 'swish_fields' => $swishWindowFields,
-                'mobilepay' => Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_MOBILEPAY),
+                'mobilepay' => $mobilePayActive,
                 'mobilepay_fields' => $mobilePayWindowFields,
-                'card' => Configuration::get(self::SETTING_ONPAY_EXTRA_PAYMENTS_CARD),
+                'card' => $cardActive,
                 'card_fields' => $cardWindowFields,
                 'actionUrl' => $actionUrl,
                 'card_logos' => json_decode(Configuration::get(self::SETTING_ONPAY_CARDLOGOS), true),
