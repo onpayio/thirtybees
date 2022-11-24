@@ -7,7 +7,7 @@ The module adds the following functionality to Prestashop:
 - Management of transaction on order pages in backoffice.
 
 The module is tested and confirmed working on
-- ThirtyBees v. 1.0.8 - 1.3.0
+- ThirtyBees v. 1.0.8 - 1.4.0
 - Prestashop v. 1.6.1.23 - 1.6.1.24
 
 ## Usage
