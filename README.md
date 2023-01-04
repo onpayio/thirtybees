@@ -7,11 +7,10 @@ The module adds the following functionality to Prestashop:
 - Management of transaction on order pages in backoffice.
 
 The module is tested and confirmed working on
-- ThirtyBees v. 1.0.8 - 1.4.0
-- Prestashop v. 1.6.1.23 - 1.6.1.24
+- ThirtyBees v. 1.4.0
 
 ## Usage
-1. Install module as any other Prestashop module.
+1. Install module as any other ThirtyBees module.
 2. Log in with OnPay on module configuration page.
 3. Module configures itself automatically after successful login.
 4. Setup up the module with the desired configuration.
