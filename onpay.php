@@ -535,9 +535,8 @@ class Onpay extends PaymentModule
             Configuration::updateValue(self::SETTING_ONPAY_SECRET, $onpayApi->gateway()->getPaymentWindowIntegrationSettings()->secret);
         }
 
-        if (Tools::isSubmit('btnSubmit'))
-        {
-            if (!count($this->_postErrors)) {
+        if (Tools::isSubmit('btnSubmit')) {
+            if (null === $this->_postErrors || !count($this->_postErrors)) {
                 $this->_postProcess();
             } else {
                 foreach ($this->_postErrors as $err) {
@@ -876,9 +875,9 @@ class Onpay extends PaymentModule
                         ]
                     ),
 
-
                     array(
                         'type' => 'title',
+                        'name' => 'payment_window',
                         'label' => '<br /><h3>' . $this->l('Payment window') . '</h3>'
                     ),
                     array(
@@ -976,6 +975,7 @@ class Onpay extends PaymentModule
 
                     array(
                         'type' => 'title',
+                        'name' => 'backoffice_settings',
                         'label' => '<br /><h3>' . $this->l('Backoffice settings') . '</h3>'
                     ),
                     array(
@@ -1011,7 +1011,10 @@ class Onpay extends PaymentModule
                     ),
 
                     array(
+                        'type' => 'title',
+                        'name' => 'gateway_info',
                         'label' => '<br /><h3>' . $this->l('Gateway information') . '</h3>',
+
                     ),
                     array(
                         'type' => 'text',
