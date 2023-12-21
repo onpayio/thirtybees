@@ -32,8 +32,8 @@ require_once __DIR__ . '/classes/Release.php';
 /**
  * Class Onpay
  */
-class Onpay extends PaymentModule
-{
+class Onpay extends PaymentModule {
+    const ONPAY_PLUGIN_VERSION = '1.0.17';
     const SETTING_ONPAY_GATEWAY_ID = 'ONPAY_GATEWAY_ID';
     const SETTING_ONPAY_SECRET = 'ONPAY_SECRET';
     const SETTING_ONPAY_EXTRA_PAYMENTS_MOBILEPAY = 'ONPAY_EXTRA_PAYMENTS_MOBILEPAY';
@@ -81,7 +81,7 @@ class Onpay extends PaymentModule
     {
         $this->name = 'onpay';
         $this->tab = 'payments_gateways';
-        $this->version = '1.0.17';
+        $this->version = self::ONPAY_PLUGIN_VERSION;
         $this->controllers = ['payment', 'validation'];
         $this->author = 'OnPay';
         $this->currencies = true;
@@ -331,12 +331,7 @@ class Onpay extends PaymentModule
         $paymentWindow->setType("payment");
         $paymentWindow->setCallbackUrl($this->context->link->getModuleLink('onpay', 'callback', [], Configuration::get('PS_SSL_ENABLED'), null));
         $paymentWindow->setWebsite(Tools::getHttpHost(true).__PS_BASE_URI__);
-
-        if (defined('_TB_VERSION_')) {
-            $paymentWindow->setPlatform('thirtybees', $this->version, _TB_VERSION_);
-        } else {
-            $paymentWindow->setPlatform('prestashop16', $this->version, _PS_VERSION_);
-        }
+        $paymentWindow->setPlatform($this->getPlatformName(), self::ONPAY_PLUGIN_VERSION, $this->getPlatformVersion());
 
         if(Configuration::get(self::SETTING_ONPAY_PAYMENTWINDOW_DESIGN)) {
             $paymentWindow->setDesign(Configuration::get(self::SETTING_ONPAY_PAYMENTWINDOW_DESIGN));
@@ -1173,6 +1168,7 @@ class Onpay extends PaymentModule
         $onPayAPI = new \OnPay\OnPayAPI($tokenStorage, [
             'client_id' => 'Onpay Prestashop',
             'redirect_uri' => $url,
+            'platform' => $this->getPlatformName() . '/' . self::ONPAY_PLUGIN_VERSION . '/' . $this->getPlatformVersion()
         ]);
         return $onPayAPI;
     }
@@ -1428,12 +1424,26 @@ class Onpay extends PaymentModule
         return $release;
     }
 
+    private function getPlatformName() {
+        if (defined('_TB_VERSION_')) {
+            return 'thirtybees';
+        }
+        return 'prestashop16';
+    }
+
+    private function getPlatformVersion() {
+        if (defined('_TB_VERSION_')) {
+            return _TB_VERSION_;
+        }
+        return _PS_VERSION_;
+    }
+
     private function httpGet($url) {
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, $url);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_HEADER, false);
-        curl_setopt($curl, CURLOPT_USERAGENT, "onpay-thirtybees-module");
+        curl_setopt($curl, CURLOPT_USERAGENT, $this->getPlatformName() . '/' . self::ONPAY_PLUGIN_VERSION . '/' . $this->getPlatformVersion());
         curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($curl, CURLOPT_MAXREDIRS, 3);
         curl_setopt($curl, CURLOPT_TIMEOUT, 10);
