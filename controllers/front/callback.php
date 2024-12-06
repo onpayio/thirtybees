@@ -74,7 +74,7 @@ class OnpayCallbackModuleFrontController extends ModuleFrontController
         $this->context->currency = $currency; // Set the context currency to cart currency
 
         // Check that order is not yet created, or in process of creation.
-        if ($orderId === false && !$onpay->isCartLocked($cart->id)) {
+        if ((false === $orderId || 0 === $orderId) && !$onpay->isCartLocked($cart->id)) {
             // Lock cart while creating order
             $onpay->lockCart($cart->id);
 
