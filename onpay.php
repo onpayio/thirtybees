@@ -33,7 +33,7 @@ require_once __DIR__ . '/classes/Release.php';
  * Class Onpay
  */
 class Onpay extends PaymentModule {
-    const ONPAY_PLUGIN_VERSION = '1.0.17';
+    const ONPAY_PLUGIN_VERSION = '1.0.18';
     const SETTING_ONPAY_GATEWAY_ID = 'ONPAY_GATEWAY_ID';
     const SETTING_ONPAY_SECRET = 'ONPAY_SECRET';
     const SETTING_ONPAY_EXTRA_PAYMENTS_MOBILEPAY = 'ONPAY_EXTRA_PAYMENTS_MOBILEPAY';
