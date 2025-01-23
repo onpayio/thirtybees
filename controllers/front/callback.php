@@ -33,6 +33,8 @@ class OnpayCallbackModuleFrontController extends ModuleFrontController
 
         $onpayUuid = Tools::getValue('onpay_uuid');
         $onpayReference = Tools::getValue('onpay_reference');
+        $onpayMethod = Tools::getValue('onpay_method');
+        $onpayCardType = Tools::getValue('onpay_cardtype');
 
         // Validate query parameters and check that onpay_number is present
         if (!$paymentWindow->validatePayment(Tools::getAllValues()) || false === $onpayUuid) {
@@ -80,11 +82,17 @@ class OnpayCallbackModuleFrontController extends ModuleFrontController
 
             $total = (float)$cart->getOrderTotal(true, Cart::BOTH);
 
+            $method = 'OnPay';
+            if ('card' === $onpayMethod && false !== $onpayCardType) {
+                // If card type is provided, append to method name
+                $method .= ' - ' . ucfirst($onpayCardType);
+            }
+
             $this->module->validateOrder(
                 $cart->id,
                 Configuration::get('PS_OS_PAYMENT'),
                 $total,
-                'OnPay',
+                $method,
                 null,
                 [
                     'transaction_id' => $onpayUuid,
