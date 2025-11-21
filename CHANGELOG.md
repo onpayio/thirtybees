@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 - Add card brand name to method name if method is card.
+- Added SECURITY.md
 
 ## [1.0.18] - 2024-12-09
 - Fixed bug with checked order ID in callback handling
