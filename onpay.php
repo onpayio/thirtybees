@@ -102,9 +102,9 @@ class Onpay extends PaymentModule {
 
     private function registerHooks() {
         $hookVersion = 4;
-        $currentHookVersion = Configuration::get(self::SETTING_ONPAY_HOOK_VERSION, null, null, null, 0);
+        $currentHookVersion = Configuration::get(self::SETTING_ONPAY_HOOK_VERSION, null, null, null, false);
 
-        if ($currentHookVersion >= $hookVersion) {
+        if ($currentHookVersion === false || $currentHookVersion >= $hookVersion) {
             return;
         }
 
@@ -137,7 +137,7 @@ class Onpay extends PaymentModule {
 
         $highestVersion = 0;
         foreach ($hooks as $version => $versionHooks) {
-            if ($hookVersion <= $version) {
+            if ($hookVersion >= $version) {
                 foreach ($versionHooks as $hook) {
                     if (!$this->isRegisteredInHook($hook)) {
                         $this->registerHook($hook);
